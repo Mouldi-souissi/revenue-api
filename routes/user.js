@@ -52,4 +52,10 @@ router.get("/", (req, res) => {
     .catch((err) => res.status(400).send(err));
 });
 
+router.delete("/:id", (req, res) => {
+  User.findByIdAndRemove(req.params.id)
+    .then((deletedUser) => res.status(200).send(deletedUser))
+    .catch((err) => res.status(400).send(err));
+});
+
 module.exports = router;
