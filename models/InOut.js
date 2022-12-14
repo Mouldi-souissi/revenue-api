@@ -1,10 +1,12 @@
 const mongoose = require("mongoose");
 
 const inOutSchema = new mongoose.Schema({
-  deposit: { type: String, required: true },
+  depositStart: { type: String, required: true },
+  depositEnd: { type: String, required: true },
   sites: [{ name: String, start: String, end: String, rate: String }],
-  totalWinners: String,
-  totalDepenses: String,
+  totalWins: { type: String, required: true },
+  totalDepenses: { type: String, required: true },
+  date: { type: Date, default: Date.now },
 });
 
 module.exports = mongoose.model("InOut", inOutSchema);
