@@ -2,6 +2,8 @@ const router = require("express").Router();
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const isAuth = require("../permssions/isAuth");
+const isAdmin = require("../permssions/isAdmin");
 
 // register
 // public route
@@ -42,7 +44,10 @@ router.post("/login", async (req, res) => {
     return res.status(401).send("user has been blocked");
 
   // create token
-  const token = jwt.sign({ id: user._id, name: user.name }, "secret");
+  const token = jwt.sign(
+    { id: user._id, name: user.name, type: user.type },
+    "secret"
+  );
   res.header("token", token).send(token);
 });
 
@@ -52,7 +57,7 @@ router.get("/", (req, res) => {
     .catch((err) => res.status(400).send(err));
 });
 
-router.delete("/:id", (req, res) => {
+router.delete("/:id", isAuth, isAdmin, (req, res) => {
   User.findByIdAndRemove(req.params.id)
     .then((deletedUser) => res.status(200).send(deletedUser))
     .catch((err) => res.status(400).send(err));

@@ -1,11 +1,12 @@
 const mongoose = require("mongoose");
 
 const inOutSchema = new mongoose.Schema({
-  depositStart: { type: String, required: true },
-  depositEnd: { type: String, required: true },
-  sites: [{ name: String, start: String, end: String, rate: String }],
-  totalWins: { type: String, required: true },
-  totalDepenses: { type: String, required: true },
+  type: { type: String, required: true }, //in or out
+  subType: { type: String, required: true }, //win or spending
+  amount: { type: String, required: true },
+  account: { type: String, required: true },
+  description: { type: String, required: true },
+  user: { type: String, required: true },
   date: { type: Date, default: Date.now },
 });
 
