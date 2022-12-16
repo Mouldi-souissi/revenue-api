@@ -20,8 +20,8 @@ router.post("/", isAuth, async (req, res) => {
     user: req.user.name,
   });
   try {
-    const addedInOut = await inOut.save();
-    res.send(addedInOut);
+    const doc = await inOut.save();
+    res.send(doc);
   } catch (err) {
     res.status(400).send(err);
   }
@@ -29,7 +29,7 @@ router.post("/", isAuth, async (req, res) => {
 
 router.get("/", (req, res) => {
   InOut.find()
-    .then((inOut) => res.status(200).send(inOut))
+    .then((doc) => res.status(200).send(doc))
     .catch((err) => res.status(400).send(err));
 });
 
@@ -38,7 +38,19 @@ router.get("/out", (req, res) => {
     type: "sortie",
     date: { $gte: startOfDay(new Date()), $lte: endOfDay(new Date()) },
   })
-    .then((inOut) => res.status(200).send(inOut))
+    .then((docs) => res.status(200).send(docs))
+    .catch((err) => res.status(400).send(err));
+});
+
+router.delete("/:id", (req, res) => {
+  InOut.findByIdAndRemove(req.params.id)
+    .then((doc) => res.status(200).send(doc))
+    .catch((err) => res.status(400).send(err));
+});
+
+router.put("/:id", (req, res) => {
+  InOut.findByIdAndUpdate(req.params.id)
+    .then((doc) => res.status(200).send(doc))
     .catch((err) => res.status(400).send(err));
 });
 
