@@ -42,6 +42,15 @@ router.get("/out", (req, res) => {
     .catch((err) => res.status(400).send(err));
 });
 
+router.get("/in", (req, res) => {
+  InOut.find({
+    type: "entrée",
+    date: { $gte: startOfDay(new Date()), $lte: endOfDay(new Date()) },
+  })
+    .then((docs) => res.status(200).send(docs))
+    .catch((err) => res.status(400).send(err));
+});
+
 router.delete("/:id", (req, res) => {
   InOut.findByIdAndRemove(req.params.id)
     .then((doc) => res.status(200).send(doc))
@@ -49,7 +58,7 @@ router.delete("/:id", (req, res) => {
 });
 
 router.put("/:id", (req, res) => {
-  InOut.findByIdAndUpdate(req.params.id)
+  InOut.findByIdAndUpdate(req.params.id, req.body, { new: true })
     .then((doc) => res.status(200).send(doc))
     .catch((err) => res.status(400).send(err));
 });

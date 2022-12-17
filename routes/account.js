@@ -13,8 +13,8 @@ router.post("/", async (req, res) => {
   });
 
   try {
-    const savedAccount = await account.save();
-    res.send(savedAccount);
+    const doc = await account.save();
+    res.send(doc);
   } catch (err) {
     res.status(400).send(err);
   }
@@ -22,14 +22,19 @@ router.post("/", async (req, res) => {
 
 router.get("/", (req, res) => {
   Account.find()
-    .then((accounts) => res.status(200).send(accounts))
+    .then((docs) => res.status(200).send(docs))
     .catch((err) => res.status(400).send(err));
 });
 
 router.put("/:id", (req, res) => {
-  const accountId = req.params.id;
-  Account.findByIdAndUpdate(accountId, req.body, { new: true })
-    .then((editedAccount) => res.json(editedAccount))
+  Account.findByIdAndUpdate(req.params.id, req.body, { new: true })
+    .then((doc) => res.json(doc))
+    .catch((err) => res.send(err));
+});
+
+router.delete("/:id", (req, res) => {
+  Account.findByIdAndDelete(req.params.id, req.body, { new: true })
+    .then((doc) => res.json(doc))
     .catch((err) => res.send(err));
 });
 

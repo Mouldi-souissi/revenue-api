@@ -63,4 +63,10 @@ router.delete("/:id", isAuth, isAdmin, (req, res) => {
     .catch((err) => res.status(400).send(err));
 });
 
+router.put("/:id", (req, res) => {
+  User.findByIdAndUpdate(req.params.id, req.body, { new: true })
+    .then((doc) => res.json(doc))
+    .catch((err) => res.send(err));
+});
+
 module.exports = router;

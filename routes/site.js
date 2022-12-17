@@ -12,8 +12,8 @@ router.post("/", async (req, res) => {
     img: req.body.img,
   });
   try {
-    const addedSite = await site.save();
-    res.send(addedSite);
+    const doc = await site.save();
+    res.send(doc);
   } catch (err) {
     res.status(400).send(err);
   }
@@ -21,21 +21,19 @@ router.post("/", async (req, res) => {
 
 router.get("/", (req, res) => {
   Site.find()
-    .then((sites) => res.status(200).send(sites))
+    .then((docs) => res.status(200).send(docs))
     .catch((err) => res.status(400).send(err));
 });
 
 router.put("/:id", (req, res) => {
-  const siteId = req.params.id;
-  Site.findByIdAndUpdate(siteId, req.body, { new: true })
-    .then((editedSite) => res.json(editedSite))
+  Site.findByIdAndUpdate(req.params.id, req.body, { new: true })
+    .then((doc) => res.json(doc))
     .catch((err) => res.send(err));
 });
 
 router.delete("/:id", (req, res) => {
-  const siteId = req.params.id;
-  Post.findByIdAndDelete(siteId)
-    .then(res.send("site deleted"))
+  Post.findByIdAndDelete(req.params.id)
+    .then((doc) => res.send(doc))
     .catch((err) => res.send(err));
 });
 
