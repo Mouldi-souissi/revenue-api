@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const InOut = require("../models/InOut");
+const Move = require("../models/Move");
 const endOfDay = require("date-fns/endOfDay");
 const startOfDay = require("date-fns/startOfDay");
 const isAuth = require("../permssions/isAuth");
@@ -11,7 +11,7 @@ router.post("/", isAuth, async (req, res) => {
 
   const { type, amount, account, description, subType } = req.body;
 
-  const inOut = new InOut({
+  const move = new Move({
     type,
     subType,
     amount,
@@ -20,7 +20,7 @@ router.post("/", isAuth, async (req, res) => {
     user: req.user.name,
   });
   try {
-    const doc = await inOut.save();
+    const doc = await move.save();
     res.send(doc);
   } catch (err) {
     res.status(400).send(err);
@@ -28,23 +28,34 @@ router.post("/", isAuth, async (req, res) => {
 });
 
 router.get("/", (req, res) => {
-  InOut.find()
+  Move.find()
     .then((doc) => res.status(200).send(doc))
     .catch((err) => res.status(400).send(err));
 });
 
-router.get("/out", (req, res) => {
-  InOut.find({
+router.get("/spending", (req, res) => {
+  Move.find({
     type: "sortie",
+    subType: "dépense",
+    date: { $gte: startOfDay(new Date()), $lte: endOfDay(new Date()) },
+  })
+    .then((docs) => res.status(200).send(docs))
+    .catch((err) => res.status(400).send(err));
+});
+router.get("/win", (req, res) => {
+  Move.find({
+    type: "sortie",
+    subType: "gain",
     date: { $gte: startOfDay(new Date()), $lte: endOfDay(new Date()) },
   })
     .then((docs) => res.status(200).send(docs))
     .catch((err) => res.status(400).send(err));
 });
 
-router.get("/in", (req, res) => {
-  InOut.find({
+router.get("/sales", (req, res) => {
+  Move.find({
     type: "entrée",
+    subType: "vente",
     date: { $gte: startOfDay(new Date()), $lte: endOfDay(new Date()) },
   })
     .then((docs) => res.status(200).send(docs))
@@ -52,13 +63,13 @@ router.get("/in", (req, res) => {
 });
 
 router.delete("/:id", (req, res) => {
-  InOut.findByIdAndRemove(req.params.id)
+  Move.findByIdAndRemove(req.params.id)
     .then((doc) => res.status(200).send(doc))
     .catch((err) => res.status(400).send(err));
 });
 
 router.put("/:id", (req, res) => {
-  InOut.findByIdAndUpdate(req.params.id, req.body, { new: true })
+  Move.findByIdAndUpdate(req.params.id, req.body, { new: true })
     .then((doc) => res.status(200).send(doc))
     .catch((err) => res.status(400).send(err));
 });

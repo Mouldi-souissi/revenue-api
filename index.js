@@ -5,9 +5,8 @@ const connect = require("./db/connect");
 
 // import routes
 const user = require("./routes/user");
-const site = require("./routes/site");
 const account = require("./routes/account");
-const inOut = require("./routes/inOut");
+const move = require("./routes/move");
 
 // connect to DB
 connect();
@@ -18,9 +17,8 @@ app.use(cors());
 
 // routes
 app.use("/api/user", user);
-app.use("/api/site", site);
 app.use("/api/account", account);
-app.use("/api/inOut", inOut);
+app.use("/api/move", move);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, (err) => {

@@ -8,8 +8,10 @@ router.post("/", async (req, res) => {
 
   const account = new Account({
     name: req.body.name,
+    rate: req.body.rate,
+    img: req.body.img,
     deposit: req.body.deposit,
-    previousDeposit: req.body.previousDeposit,
+    lastMove: { type: "in", amount: req.body.deposit },
   });
 
   try {
@@ -33,8 +35,8 @@ router.put("/:id", (req, res) => {
 });
 
 router.delete("/:id", (req, res) => {
-  Account.findByIdAndDelete(req.params.id, req.body, { new: true })
-    .then((doc) => res.json(doc))
+  Account.findByIdAndDelete(req.params.id)
+    .then((doc) => res.send(doc))
     .catch((err) => res.send(err));
 });
 
