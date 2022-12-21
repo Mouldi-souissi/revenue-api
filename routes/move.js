@@ -4,6 +4,7 @@ const Account = require("../models/Account");
 const endOfDay = require("date-fns/endOfDay");
 const startOfDay = require("date-fns/startOfDay");
 const isAuth = require("../permssions/isAuth");
+const isAdmin = require("../permssions/isAdmin");
 
 const updateAccount = async (move, isMoveAdded = true) => {
   const { subType, amount, account } = move;
@@ -55,6 +56,7 @@ const updateAccount = async (move, isMoveAdded = true) => {
     }
     if (subType === "vente") {
       const caisseAccount = accounts.find((acc) => acc.name === "Caisse");
+      const saleAccount = accounts.find((acc) => acc.name === account);
       const rate = accounts.find((acc) => acc.name === account).rate;
       if (isMoveAdded) {
         await Account.findByIdAndUpdate(caisseAccount._id, {
@@ -62,11 +64,19 @@ const updateAccount = async (move, isMoveAdded = true) => {
           deposit:
             Number(caisseAccount.deposit) + Number(amount) * Number(rate),
         });
+        await Account.findByIdAndUpdate(saleAccount._id, {
+          lastMove: { type: "sortie", amount: Number(amount) },
+          deposit: Number(saleAccount.deposit) - Number(amount),
+        });
       } else {
         await Account.findByIdAndUpdate(caisseAccount._id, {
           lastMove: { type: "sortie", amount: Number(amount) * Number(rate) },
           deposit:
             Number(caisseAccount.deposit) - Number(amount) * Number(rate),
+        });
+        await Account.findByIdAndUpdate(saleAccount._id, {
+          lastMove: { type: "entrée", amount: Number(amount) },
+          deposit: Number(saleAccount.deposit) + Number(amount),
         });
       }
     }
@@ -100,13 +110,13 @@ router.post("/", isAuth, async (req, res) => {
   }
 });
 
-router.get("/", (req, res) => {
+router.get("/", isAuth, (req, res) => {
   Move.find()
     .then((doc) => res.status(200).send(doc))
     .catch((err) => res.status(400).send(err));
 });
 
-router.get("/spending", (req, res) => {
+router.get("/spending", isAuth, (req, res) => {
   Move.find({
     type: "sortie",
     subType: "dépense",
@@ -115,7 +125,8 @@ router.get("/spending", (req, res) => {
     .then((docs) => res.status(200).send(docs))
     .catch((err) => res.status(400).send(err));
 });
-router.get("/win", (req, res) => {
+
+router.get("/win", isAuth, (req, res) => {
   Move.find({
     type: "sortie",
     subType: "gain",
@@ -125,7 +136,7 @@ router.get("/win", (req, res) => {
     .catch((err) => res.status(400).send(err));
 });
 
-router.get("/sales", (req, res) => {
+router.get("/sales", isAuth, (req, res) => {
   Move.find({
     type: "entrée",
     subType: "vente",
@@ -135,7 +146,7 @@ router.get("/sales", (req, res) => {
     .catch((err) => res.status(400).send(err));
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", isAuth, async (req, res) => {
   try {
     const move = await Move.findById(req.params.id);
     await updateAccount(move, false);
@@ -147,7 +158,7 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-router.put("/:id", (req, res) => {
+router.put("/:id", isAuth, isAdmin, (req, res) => {
   Move.findByIdAndUpdate(req.params.id, req.body, { new: true })
     .then((doc) => res.status(200).send(doc))
     .catch((err) => res.status(400).send(err));
