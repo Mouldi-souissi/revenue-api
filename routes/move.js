@@ -3,6 +3,10 @@ const Move = require("../models/Move");
 const Account = require("../models/Account");
 const endOfDay = require("date-fns/endOfDay");
 const startOfDay = require("date-fns/startOfDay");
+const startOfWeek = require("date-fns/startOfWeek");
+const endOfWeek = require("date-fns/endOfWeek");
+const startOfMonth = require("date-fns/startOfMonth");
+const endOfMonth = require("date-fns/endOfMonth");
 const isAuth = require("../permssions/isAuth");
 const isAdmin = require("../permssions/isAdmin");
 
@@ -80,6 +84,13 @@ const updateAccount = async (move, isMoveAdded = true) => {
         });
       }
     }
+    if (subType === "versement") {
+      const depositAccount = accounts.find((acc) => acc.name === account);
+      await Account.findByIdAndUpdate(depositAccount._id, {
+        lastMove: { type: "entrée", amount: Number(amount) },
+        deposit: Number(depositAccount.deposit) + Number(amount),
+      });
+    }
   } catch (error) {
     console.log(error);
   }
@@ -110,9 +121,25 @@ router.post("/", isAuth, async (req, res) => {
   }
 });
 
-router.get("/", isAuth, (req, res) => {
-  Move.find()
-    .then((doc) => res.status(200).send(doc))
+router.get("/:period", isAuth, isAdmin, (req, res) => {
+  const period = req.params.period;
+  let query = "";
+
+  if (period === "daily") {
+    query = { $gte: startOfDay(new Date()), $lte: endOfDay(new Date()) };
+  }
+  if (period === "weekly") {
+    query = {
+      $gte: startOfWeek(new Date(), { weekStartsOn: 1 }),
+      $lte: endOfWeek(new Date(), { weekStartsOn: 1 }),
+    };
+  }
+  if (period === "monthly") {
+    query = { $gte: startOfMonth(new Date()), $lte: endOfMonth(new Date()) };
+  }
+  Move.find({ date: query })
+    .sort({ date: -1 })
+    .then((docs) => res.status(200).send(docs))
     .catch((err) => res.status(400).send(err));
 });
 
