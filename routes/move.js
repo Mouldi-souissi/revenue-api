@@ -10,6 +10,36 @@ const endOfMonth = require("date-fns/endOfMonth");
 const isAuth = require("../permssions/isAuth");
 const isAdmin = require("../permssions/isAdmin");
 
+router.get("/wins", (req, res) => {
+  Move.find({
+    type: "sortie",
+    subType: "gain",
+    date: { $gte: startOfDay(new Date()), $lte: endOfDay(new Date()) },
+  })
+    .then((docs) => res.status(200).send(docs))
+    .catch((err) => res.status(400).send(err));
+});
+
+router.get("/sales", (req, res) => {
+  Move.find({
+    type: "entrée",
+    subType: "vente",
+    date: { $gte: startOfDay(new Date()), $lte: endOfDay(new Date()) },
+  })
+    .then((docs) => res.status(200).send(docs))
+    .catch((err) => res.status(400).send(err));
+});
+
+router.get("/spending", isAuth, (req, res) => {
+  Move.find({
+    type: "sortie",
+    subType: "dépense",
+    date: { $gte: startOfDay(new Date()), $lte: endOfDay(new Date()) },
+  })
+    .then((docs) => res.status(200).send(docs))
+    .catch((err) => res.status(400).send(err));
+});
+
 const updateAccount = async (move, isMoveAdded = true) => {
   const { subType, amount, account } = move;
   try {
@@ -139,36 +169,6 @@ router.get("/:period", isAuth, isAdmin, (req, res) => {
   }
   Move.find({ date: query })
     .sort({ date: -1 })
-    .then((docs) => res.status(200).send(docs))
-    .catch((err) => res.status(400).send(err));
-});
-
-router.get("/spending", isAuth, (req, res) => {
-  Move.find({
-    type: "sortie",
-    subType: "dépense",
-    date: { $gte: startOfDay(new Date()), $lte: endOfDay(new Date()) },
-  })
-    .then((docs) => res.status(200).send(docs))
-    .catch((err) => res.status(400).send(err));
-});
-
-router.get("/win", isAuth, (req, res) => {
-  Move.find({
-    type: "sortie",
-    subType: "gain",
-    date: { $gte: startOfDay(new Date()), $lte: endOfDay(new Date()) },
-  })
-    .then((docs) => res.status(200).send(docs))
-    .catch((err) => res.status(400).send(err));
-});
-
-router.get("/sales", isAuth, (req, res) => {
-  Move.find({
-    type: "entrée",
-    subType: "vente",
-    date: { $gte: startOfDay(new Date()), $lte: endOfDay(new Date()) },
-  })
     .then((docs) => res.status(200).send(docs))
     .catch((err) => res.status(400).send(err));
 });
