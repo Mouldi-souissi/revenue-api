@@ -9,30 +9,29 @@ const startOfMonth = require("date-fns/startOfMonth");
 const endOfMonth = require("date-fns/endOfMonth");
 const isAuth = require("../permssions/isAuth");
 const isAdmin = require("../permssions/isAdmin");
-const parseISO = require("date-fns/parseISO");
 
-const today = Date.now();
+const today = new Date();
 
 router.get("/wins", isAuth, (req, res) => {
   Move.find({
     type: "sortie",
     subType: "gain",
     date: {
-      $gte: startOfDay(today),
-      $lte: endOfDay(today),
+      $gte: yesterday,
+      $lte: today,
     },
   })
-    .then((docs) => res.status(200).send({ date: new Date(today) }))
+    .then((docs) => res.status(200).send(docs))
     .catch((err) => res.status(400).send(err));
 });
 
-router.get("/sales/:today", isAuth, (req, res) => {
+router.get("/sales", isAuth, (req, res) => {
   Move.find({
     type: "entrée",
     subType: "vente",
     date: {
-      $gte: startOfDay(new Date(parseISO(req.params.today))),
-      $lte: endOfDay(new Date(parseISO(req.params.today))),
+      $gte: new Date(startOfDay(today)),
+      $lte: new Date(endOfDay(today)),
     },
   })
     .then((docs) => res.status(200).send(docs))
