@@ -7,7 +7,7 @@ const moveSchema = new mongoose.Schema({
   account: { type: String, required: true },
   description: { type: String },
   user: { type: String, required: true },
-  date: { type: Date, default: Date.now },
+  date: { type: Date, default: new Date() },
 });
 
 module.exports = mongoose.model("Move", moveSchema);

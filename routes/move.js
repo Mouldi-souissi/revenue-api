@@ -17,8 +17,8 @@ router.get("/wins", isAuth, (req, res) => {
     type: "sortie",
     subType: "gain",
     date: {
-      $gte: yesterday,
-      $lte: today,
+      $gte: startOfDay(today),
+      $lte: endOfDay(today),
     },
   })
     .then((docs) => res.status(200).send(docs))
@@ -26,15 +26,14 @@ router.get("/wins", isAuth, (req, res) => {
 });
 
 router.get("/sales", isAuth, (req, res) => {
-  Move.find()
-    .where({
-      type: "entrée",
-      subType: "vente",
-      date: {
-        $gte: startOfDay(today),
-        $lte: endOfDay(today),
-      },
-    })
+  Move.find({
+    type: "entrée",
+    subType: "vente",
+    date: {
+      $gte: startOfDay(today),
+      $lte: endOfDay(today),
+    },
+  })
     .then((docs) => res.status(200).send(docs))
     .catch((err) => res.status(400).send(err));
 });
