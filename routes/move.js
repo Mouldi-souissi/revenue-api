@@ -14,7 +14,7 @@ router.get("/wins", (req, res) => {
   Move.find({
     type: "sortie",
     subType: "gain",
-    date: { $gte: startOfDay(Date.now()), $lte: endOfDay(Date.now()) },
+    date: { $gte: startOfDay(new Date()), $lte: endOfDay(new Date()) },
   })
     .then((docs) => res.status(200).send(docs))
     .catch((err) => res.status(400).send(err));
@@ -24,7 +24,7 @@ router.get("/sales", (req, res) => {
   Move.find({
     type: "entrée",
     subType: "vente",
-    date: { $gte: startOfDay(Date.now()), $lte: endOfDay(Date.now()) },
+    date: { $gte: startOfDay(new Date()), $lte: endOfDay(new Date()) },
   })
     .then((docs) => res.status(200).send(docs))
     .catch((err) => res.status(400).send(err));
@@ -34,7 +34,7 @@ router.get("/spending", isAuth, (req, res) => {
   Move.find({
     type: "sortie",
     subType: "dépense",
-    date: { $gte: startOfDay(Date.now()), $lte: endOfDay(Date.now()) },
+    date: { $gte: startOfDay(new Date()), $lte: endOfDay(new Date()) },
   })
     .then((docs) => res.status(200).send(docs))
     .catch((err) => res.status(400).send(err));
@@ -156,16 +156,16 @@ router.get("/:period", isAuth, isAdmin, (req, res) => {
   let query = "";
 
   if (period === "daily") {
-    query = { $gte: startOfDay(Date.now()), $lte: endOfDay(Date.now()) };
+    query = { $gte: startOfDay(new Date()), $lte: endOfDay(new Date()) };
   }
   if (period === "weekly") {
     query = {
-      $gte: startOfWeek(Date.now(), { weekStartsOn: 1 }),
-      $lte: endOfWeek(Date.now(), { weekStartsOn: 1 }),
+      $gte: startOfWeek(new Date(), { weekStartsOn: 1 }),
+      $lte: endOfWeek(new Date(), { weekStartsOn: 1 }),
     };
   }
   if (period === "monthly") {
-    query = { $gte: startOfMonth(Date.now()), $lte: endOfMonth(Date.now()) };
+    query = { $gte: startOfMonth(new Date()), $lte: endOfMonth(new Date()) };
   }
   Move.find({ date: query })
     .sort({ date: -1 })
