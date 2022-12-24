@@ -9,6 +9,7 @@ const startOfMonth = require("date-fns/startOfMonth");
 const endOfMonth = require("date-fns/endOfMonth");
 const isAuth = require("../permssions/isAuth");
 const isAdmin = require("../permssions/isAdmin");
+const parseISO = require("date-fns/parseISO");
 
 const today = Date.now();
 
@@ -30,8 +31,8 @@ router.get("/sales/:today", isAuth, (req, res) => {
     type: "entrée",
     subType: "vente",
     date: {
-      $gte: startOfDay(new Date(req.params.today)),
-      $lte: endOfDay(new Date(req.params.today)),
+      $gte: startOfDay(new Date(parseISO(req.params.today))),
+      $lte: endOfDay(new Date(parseISO(req.params.today))),
     },
   })
     .then((docs) => res.status(200).send(docs))
