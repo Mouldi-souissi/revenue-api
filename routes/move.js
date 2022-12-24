@@ -10,7 +10,7 @@ const endOfMonth = require("date-fns/endOfMonth");
 const isAuth = require("../permssions/isAuth");
 const isAdmin = require("../permssions/isAdmin");
 
-const today = new Date();
+const today = Date.now();
 
 router.get("/wins", (req, res) => {
   Move.find({
