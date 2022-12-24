@@ -12,7 +12,7 @@ const isAdmin = require("../permssions/isAdmin");
 
 const today = Date.now();
 
-router.get("/wins", (req, res) => {
+router.get("/wins", isAuth, (req, res) => {
   Move.find({
     type: "sortie",
     subType: "gain",
@@ -25,11 +25,14 @@ router.get("/wins", (req, res) => {
     .catch((err) => res.status(400).send(err));
 });
 
-router.get("/sales", (req, res) => {
+router.get("/sales/:today", isAuth, (req, res) => {
   Move.find({
     type: "entrée",
     subType: "vente",
-    date: { $gte: startOfDay(today), $lte: endOfDay(today) },
+    date: {
+      $gte: startOfDay(new Date(req.params.today)),
+      $lte: endOfDay(new Date(req.params.today)),
+    },
   })
     .then((docs) => res.status(200).send(docs))
     .catch((err) => res.status(400).send(err));
