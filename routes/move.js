@@ -22,7 +22,7 @@ router.get("/wins", isAuth, (req, res) => {
       $lte: endOfDay(today),
     },
   })
-    .then((docs) => res.status(200).send(docs))
+    .then((docs) => res.status(200).send({ date: new Date(today) }))
     .catch((err) => res.status(400).send(err));
 });
 
