@@ -199,4 +199,10 @@ router.put("/:id", isAuth, isAdmin, (req, res) => {
     .catch((err) => res.status(400).send(err));
 });
 
+router.delete("/", isAuth, isAdmin, (req, res) => {
+  Move.remove({})
+    .then(() => res.status(200).send("moves removed"))
+    .catch((err) => res.status(400).send(err));
+});
+
 module.exports = router;
