@@ -148,6 +148,7 @@ router.post("/", isAuth, async (req, res) => {
     account,
     description,
     user: req.user.name,
+    date: new Date(),
   });
 
   try {
