@@ -25,6 +25,26 @@ router.get("/wins", isAuth, (req, res) => {
     .catch((err) => res.status(400).send(err));
 });
 
+router.get("/totalWins", isAuth, (req, res) => {
+  Move.find({
+    type: "sortie",
+    subType: "gain",
+    date: {
+      $gte: startOfDay(today),
+      $lte: endOfDay(today),
+    },
+  })
+    .then((docs) => {
+      const totalWins = docs.reduce(
+        (acc, curr) => (acc += Number(curr.amount)),
+        0
+      );
+
+      res.json(totalWins);
+    })
+    .catch((err) => res.status(400).send(err));
+});
+
 router.get("/sales", isAuth, (req, res) => {
   Move.find({
     type: "entrée",
@@ -48,92 +68,6 @@ router.get("/spending", isAuth, (req, res) => {
     .catch((err) => res.status(400).send(err));
 });
 
-const updateAccount = async (move, isMoveAdded = true) => {
-  const { subType, amount, account } = move;
-  try {
-    const accounts = await Account.find().then((docs) => {
-      return docs;
-    });
-
-    if (subType === "gain") {
-      if (isMoveAdded) {
-        const gainAccount = accounts.find((acc) => acc.name === account);
-        await Account.findByIdAndUpdate(gainAccount._id, {
-          lastMove: { type: "entrée", amount: amount },
-          deposit: Number(gainAccount.deposit) + Number(amount),
-        });
-
-        const caisseAccount = accounts.find((acc) => acc.name === "Caisse");
-        await Account.findByIdAndUpdate(caisseAccount._id, {
-          lastMove: { type: "sortie", amount: amount },
-          deposit: Number(caisseAccount.deposit) - Number(amount),
-        });
-      } else {
-        const gainAccount = accounts.find((acc) => acc.name === account);
-        await Account.findByIdAndUpdate(gainAccount._id, {
-          lastMove: { type: "sortie", amount: amount },
-          deposit: Number(gainAccount.deposit) - Number(amount),
-        });
-
-        const caisseAccount = accounts.find((acc) => acc.name === "Caisse");
-        await Account.findByIdAndUpdate(caisseAccount._id, {
-          lastMove: { type: "entrée", amount: amount },
-          deposit: Number(caisseAccount.deposit) + Number(amount),
-        });
-      }
-    }
-    if (subType === "dépense") {
-      const caisseAccount = accounts.find((acc) => acc.name === "Caisse");
-      if (isMoveAdded) {
-        await Account.findByIdAndUpdate(caisseAccount._id, {
-          lastMove: { type: "sortie", amount: amount },
-          deposit: Number(caisseAccount.deposit) - Number(amount),
-        });
-      } else {
-        await Account.findByIdAndUpdate(caisseAccount._id, {
-          lastMove: { type: "entrée", amount: amount },
-          deposit: Number(caisseAccount.deposit) + Number(amount),
-        });
-      }
-    }
-    if (subType === "vente") {
-      const caisseAccount = accounts.find((acc) => acc.name === "Caisse");
-      const saleAccount = accounts.find((acc) => acc.name === account);
-      const rate = accounts.find((acc) => acc.name === account).rate;
-      if (isMoveAdded) {
-        await Account.findByIdAndUpdate(caisseAccount._id, {
-          lastMove: { type: "entrée", amount: Number(amount) * Number(rate) },
-          deposit:
-            Number(caisseAccount.deposit) + Number(amount) * Number(rate),
-        });
-        await Account.findByIdAndUpdate(saleAccount._id, {
-          lastMove: { type: "sortie", amount: Number(amount) },
-          deposit: Number(saleAccount.deposit) - Number(amount),
-        });
-      } else {
-        await Account.findByIdAndUpdate(caisseAccount._id, {
-          lastMove: { type: "sortie", amount: Number(amount) * Number(rate) },
-          deposit:
-            Number(caisseAccount.deposit) - Number(amount) * Number(rate),
-        });
-        await Account.findByIdAndUpdate(saleAccount._id, {
-          lastMove: { type: "entrée", amount: Number(amount) },
-          deposit: Number(saleAccount.deposit) + Number(amount),
-        });
-      }
-    }
-    if (subType === "versement") {
-      const depositAccount = accounts.find((acc) => acc.name === account);
-      await Account.findByIdAndUpdate(depositAccount._id, {
-        lastMove: { type: "entrée", amount: Number(amount) },
-        deposit: Number(depositAccount.deposit) + Number(amount),
-      });
-    }
-  } catch (error) {
-    console.log(error);
-  }
-};
-
 router.post("/", isAuth, async (req, res) => {
   if (!req.body) {
     res.status(400).send("missing data");
@@ -153,7 +87,6 @@ router.post("/", isAuth, async (req, res) => {
 
   try {
     const doc = await move.save();
-    await updateAccount(move);
     res.send(doc);
   } catch (err) {
     res.status(400).send(err);
@@ -185,7 +118,7 @@ router.get("/:period", isAuth, isAdmin, (req, res) => {
 router.delete("/:id", isAuth, async (req, res) => {
   try {
     const move = await Move.findById(req.params.id);
-    await updateAccount(move, false);
+
     Move.findByIdAndRemove(req.params.id)
       .then((doc) => res.status(200).send(doc))
       .catch((err) => res.status(400).send(err));
