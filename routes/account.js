@@ -42,17 +42,15 @@ router.get("/fond", async (req, res) => {
   }
 });
 
-router.post("/", isAuth, isAdmin, async (req, res) => {
+router.post("/", isAuth, async (req, res) => {
   if (!req.body) {
     res.status(400).send("missing data");
   }
 
   const account = new Account({
     name: req.body.name,
-    rate: req.body.rate,
     img: req.body.img,
     deposit: req.body.deposit,
-    lastMove: { type: "in", amount: req.body.deposit },
   });
 
   try {
@@ -76,7 +74,11 @@ router.get("/:name", isAuth, (req, res) => {
 });
 
 router.put("/:id", isAuth, (req, res) => {
-  Account.findByIdAndUpdate(req.params.id, req.body, { new: true })
+  Account.findByIdAndUpdate(
+    req.params.id,
+    { ...req.body, lastUpdated: today },
+    { new: true }
+  )
     .then((doc) => res.json(doc))
     .catch((err) => res.send(err));
 });
