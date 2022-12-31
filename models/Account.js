@@ -5,6 +5,11 @@ const accountSchema = new mongoose.Schema({
   deposit: { type: String, default: "0", required: true },
   img: { type: String },
   lastUpdated: { type: Date },
+  lastMove: {
+    type: { type: String, default: "" },
+    amount: { type: String, default: "0" },
+  },
+  rate: { type: String, default: "1" },
 });
 
 module.exports = mongoose.model("Account", accountSchema);
