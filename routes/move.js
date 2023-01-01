@@ -217,10 +217,17 @@ const updateAccount = async (move, isMoveAdded = true) => {
     }
     if (subType === "versement") {
       const depositAccount = accounts.find((acc) => acc.name === account);
-      await Account.findByIdAndUpdate(depositAccount._id, {
-        lastMove: { type: "entrée", amount: Number(amount) },
-        deposit: Number(depositAccount.deposit) + Number(amount),
-      });
+      if (isMoveAdded) {
+        await Account.findByIdAndUpdate(depositAccount._id, {
+          lastMove: { type: "entrée", amount: Number(amount) },
+          deposit: Number(depositAccount.deposit) + Number(amount),
+        });
+      } else {
+        await Account.findByIdAndUpdate(depositAccount._id, {
+          lastMove: { type: "sortie", amount: Number(amount) },
+          deposit: Number(depositAccount.deposit) - Number(amount),
+        });
+      }
     }
   } catch (error) {
     console.log(error);
