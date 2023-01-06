@@ -63,6 +63,7 @@ router.post("/", isAuth, async (req, res) => {
 
 router.get("/", isAuth, (req, res) => {
   Account.find()
+    .sort({ _id: -1 })
     .then((docs) => res.status(200).send(docs))
     .catch((err) => res.status(400).send(err));
 });

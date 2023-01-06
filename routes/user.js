@@ -53,6 +53,7 @@ router.post("/login", async (req, res) => {
 
 router.get("/", isAuth, isAdmin, (req, res) => {
   User.find()
+    .sort({ _id: -1 })
     .then((users) => res.status(200).send(users))
     .catch((err) => res.status(400).send(err));
 });
