@@ -11,6 +11,8 @@ const isAuth = require("../permssions/isAuth");
 const isAdmin = require("../permssions/isAdmin");
 
 const today = new Date();
+const yesterday = new Date();
+yesterday.setDate(yesterday.getDate() - 1);
 
 router.get("/wins", isAuth, (req, res) => {
   Move.find({
@@ -102,6 +104,9 @@ router.get("/:period", isAuth, isAdmin, (req, res) => {
 
   if (period === "daily") {
     query = { $gte: startOfDay(today), $lte: endOfDay(today) };
+  }
+  if (period === "yesterday") {
+    query = { $gte: startOfDay(yesterday), $lte: startOfDay(today) };
   }
   if (period === "weekly") {
     query = {
