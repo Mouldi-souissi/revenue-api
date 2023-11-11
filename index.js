@@ -7,6 +7,7 @@ const connect = require("./db/connect");
 const user = require("./routes/user");
 const account = require("./routes/account");
 const move = require("./routes/move");
+const shop = require("./routes/shop");
 
 // connect to DB
 connect();
@@ -19,6 +20,7 @@ app.use(cors());
 app.use("/api/user", user);
 app.use("/api/account", account);
 app.use("/api/move", move);
+app.use("/api/shop", shop);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, (err) => {

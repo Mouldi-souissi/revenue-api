@@ -10,6 +10,7 @@ const accountSchema = new mongoose.Schema({
     amount: { type: String, default: "0" },
   },
   rate: { type: String, default: "1" },
+  shop: { type: String, default: "aouina" },
 });
 
 module.exports = mongoose.model("Account", accountSchema);

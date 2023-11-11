@@ -2,45 +2,8 @@ const router = require("express").Router();
 const Account = require("../models/Account");
 const isAuth = require("../permssions/isAuth");
 const isAdmin = require("../permssions/isAdmin");
-const Move = require("../models/Move");
-const { startOfDay, endOfDay } = require("date-fns");
 
 const today = new Date();
-
-router.get("/fond", async (req, res) => {
-  try {
-    const fond = await Account.find({ name: "Fond" }).then((docs) => {
-      if (docs.length) {
-        return docs[0];
-      } else {
-        return false;
-      }
-    });
-
-    if (fond) {
-      const dailyMoves = await Move.find({
-        date: { $gte: startOfDay(today), $lte: endOfDay(today) },
-      })
-        .sort({ date: -1 })
-        .then((docs) => docs);
-
-      let accountState = Number(fond.deposit);
-
-      for (let move of dailyMoves) {
-        if (move.type === "entrée") {
-          accountState += Number(move.amount);
-        }
-        if (move.type === "sortie" && move.subType !== "gain") {
-          accountState -= Number(move.amount);
-        }
-      }
-
-      res.json(accountState);
-    }
-  } catch (error) {
-    console.log(error);
-  }
-});
 
 router.post("/", isAuth, async (req, res) => {
   if (!req.body) {
@@ -51,6 +14,7 @@ router.post("/", isAuth, async (req, res) => {
     name: req.body.name,
     img: req.body.img,
     deposit: req.body.deposit,
+    shop: req.user.shop,
   });
 
   try {
@@ -62,14 +26,14 @@ router.post("/", isAuth, async (req, res) => {
 });
 
 router.get("/", isAuth, (req, res) => {
-  Account.find()
+  Account.find({ shop: req.user.shop })
     .sort({ _id: -1 })
     .then((docs) => res.status(200).send(docs))
     .catch((err) => res.status(400).send(err));
 });
 
 router.get("/:name", isAuth, (req, res) => {
-  Account.find({ name: req.params.name })
+  Account.find({ name: req.params.name, shop: req.user.shop })
     .then((docs) => res.status(200).send(docs))
     .catch((err) => res.status(400).send(err));
 });
