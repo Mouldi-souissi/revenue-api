@@ -14,18 +14,18 @@ const today = new Date();
 const yesterday = new Date();
 yesterday.setDate(yesterday.getDate() - 1);
 
-router.get("/test", async (req, res) => {
-  try {
-    const moves = await Move.find();
-    for (let move of moves) {
-      await Move.findByIdAndUpdate(move._id, { shop: "aouina" }, { new: true });
-    }
-    res.status(200).send("done");
-  } catch (error) {
-    console.log(error);
-    res.status(400).send(error);
-  }
-});
+// router.get("/test", async (req, res) => {
+//   try {
+//     const moves = await Move.find();
+//     for (let move of moves) {
+//       await Move.findByIdAndUpdate(move._id, { shop: "aouina" }, { new: true });
+//     }
+//     res.status(200).send("done");
+//   } catch (error) {
+//     console.log(error);
+//     res.status(400).send(error);
+//   }
+// });
 
 router.get("/wins", isAuth, (req, res) => {
   Move.find({
