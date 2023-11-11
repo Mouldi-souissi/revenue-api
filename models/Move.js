@@ -8,6 +8,7 @@ const moveSchema = new mongoose.Schema({
   description: { type: String },
   user: { type: String, required: true },
   date: { type: Date, default: new Date() },
+  shop: { type: String, default: "aouina" },
 });
 
 module.exports = mongoose.model("Move", moveSchema);

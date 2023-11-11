@@ -14,6 +14,19 @@ const today = new Date();
 const yesterday = new Date();
 yesterday.setDate(yesterday.getDate() - 1);
 
+// router.get("/test", async (req, res) => {
+//   try {
+//     const moves = await Move.find();
+//     for (let move of moves) {
+//       await Move.findByIdAndUpdate(move._id, { shop: "aouina" }, { new: true });
+//     }
+//     res.status(200).send("done");
+//   } catch (error) {
+//     console.log(error);
+//     res.status(400).send(error);
+//   }
+// });
+
 router.get("/wins", isAuth, (req, res) => {
   Move.find({
     type: "sortie",
@@ -22,6 +35,7 @@ router.get("/wins", isAuth, (req, res) => {
       $gte: startOfDay(today),
       $lte: endOfDay(today),
     },
+    shop: req.user.shop,
   })
     .then((docs) => res.status(200).send(docs))
     .catch((err) => res.status(400).send(err));
@@ -36,6 +50,7 @@ router.get("/totalWins/:account", isAuth, (req, res) => {
       $gte: startOfDay(today),
       $lte: endOfDay(today),
     },
+    shop: req.user.shop,
   })
     .then((docs) => {
       const totalWins = docs.reduce(
@@ -56,6 +71,7 @@ router.get("/sales", isAuth, (req, res) => {
       $gte: startOfDay(today),
       $lte: endOfDay(today),
     },
+    shop: req.user.shop,
   })
     .then((docs) => res.status(200).send(docs))
     .catch((err) => res.status(400).send(err));
@@ -66,6 +82,7 @@ router.get("/spending", isAuth, (req, res) => {
     type: "sortie",
     subType: "dépense",
     date: { $gte: startOfDay(today), $lte: endOfDay(today) },
+    shop: req.user.shop,
   })
     .then((docs) => res.status(200).send(docs))
     .catch((err) => res.status(400).send(err));
@@ -87,11 +104,12 @@ router.post("/", isAuth, async (req, res) => {
     rate,
     user: req.user.name,
     date: new Date(),
+    shop: req.user.shop,
   });
 
   try {
     const doc = await move.save();
-    await updateAccount(move);
+    await updateAccount(move, true, req.user.shop);
     res.send(doc);
   } catch (err) {
     res.status(400).send(err);
@@ -117,7 +135,7 @@ router.get("/:period", isAuth, isAdmin, (req, res) => {
   if (period === "monthly") {
     query = { $gte: startOfMonth(today), $lte: endOfMonth(today) };
   }
-  Move.find({ date: query })
+  Move.find({ date: query, shop: req.user.shop })
     .sort({ date: -1 })
     .then((docs) => res.status(200).send(docs))
     .catch((err) => res.status(400).send(err));
@@ -126,7 +144,7 @@ router.get("/:period", isAuth, isAdmin, (req, res) => {
 router.delete("/:id", isAuth, async (req, res) => {
   try {
     const move = await Move.findById(req.params.id);
-    await updateAccount(move, false);
+    await updateAccount(move, false, req.user.shop);
     Move.findByIdAndRemove(req.params.id)
       .then((doc) => res.status(200).send(doc))
       .catch((err) => res.status(400).send(err));
@@ -147,10 +165,10 @@ router.delete("/", isAuth, isAdmin, (req, res) => {
     .catch((err) => res.status(400).send(err));
 });
 
-const updateAccount = async (move, isMoveAdded = true) => {
+const updateAccount = async (move, isMoveAdded = true, shop) => {
   const { subType, amount, account } = move;
   try {
-    const accounts = await Account.find().then((docs) => {
+    const accounts = await Account.find({ shop }).then((docs) => {
       return docs;
     });
 
