@@ -252,6 +252,20 @@ const updateAccount = async (move, isMoveAdded = true, shop) => {
         });
       }
     }
+    if (subType === "retrait") {
+      const depositAccount = accounts.find((acc) => acc.name === account);
+      if (isMoveAdded) {
+        await Account.findByIdAndUpdate(depositAccount._id, {
+          lastMove: { type: "sortie", amount: Number(amount) },
+          deposit: Number(depositAccount.deposit) - Number(amount),
+        });
+      } else {
+        await Account.findByIdAndUpdate(depositAccount._id, {
+          lastMove: { type: "entrée", amount: Number(amount) },
+          deposit: Number(depositAccount.deposit) + Number(amount),
+        });
+      }
+    }
   } catch (error) {
     console.log(error);
   }
