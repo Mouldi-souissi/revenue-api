@@ -9,6 +9,7 @@ const startOfMonth = require("date-fns/startOfMonth");
 const endOfMonth = require("date-fns/endOfMonth");
 const isAuth = require("../permssions/isAuth");
 const isAdmin = require("../permssions/isAdmin");
+const mongoose = require("mongoose");
 
 const today = new Date();
 const yesterday = new Date();
@@ -107,13 +108,23 @@ router.post("/", isAuth, async (req, res) => {
     shop: req.user.shop,
   });
 
-  try {
-    const doc = await move.save();
-    await updateAccount(move, true, req.user.shop);
-    res.send(doc);
-  } catch (err) {
-    res.status(400).send(err);
-  }
+  let session = null;
+  return mongoose.connection.startSession().then(async (_session) => {
+    session = _session;
+    session.startTransaction();
+    try {
+      const opts = { session };
+      const doc = await move.save(opts);
+      await updateAccount(move, true, req.user.shop, opts);
+      await session.commitTransaction();
+      res.send(doc);
+    } catch (error) {
+      await session.abortTransaction();
+      res.status(400).send(error);
+    } finally {
+      session.endSession();
+    }
+  });
 });
 
 router.get("/:period", isAuth, isAdmin, (req, res) => {
@@ -142,15 +153,24 @@ router.get("/:period", isAuth, isAdmin, (req, res) => {
 });
 
 router.delete("/:id", isAuth, async (req, res) => {
-  try {
-    const move = await Move.findById(req.params.id);
-    await updateAccount(move, false, req.user.shop);
-    Move.findByIdAndRemove(req.params.id)
-      .then((doc) => res.status(200).send(doc))
-      .catch((err) => res.status(400).send(err));
-  } catch (error) {
-    console.log(error);
-  }
+  let session = null;
+  return mongoose.connection.startSession().then(async (_session) => {
+    session = _session;
+    session.startTransaction();
+    try {
+      const opts = { session };
+      const move = await Move.findById(req.params.id).session(opts.session);
+      await updateAccount(move, false, req.user.shop, opts);
+      const doc = await Move.findByIdAndRemove(req.params.id, opts);
+      await session.commitTransaction();
+      res.status(200).send(doc);
+    } catch (error) {
+      await session.abortTransaction();
+      res.status(400).send(error);
+    } finally {
+      session.endSession();
+    }
+  });
 });
 
 router.put("/:id", isAuth, isAdmin, (req, res) => {
@@ -165,12 +185,10 @@ router.delete("/", isAuth, isAdmin, (req, res) => {
     .catch((err) => res.status(400).send(err));
 });
 
-const updateAccount = async (move, isMoveAdded = true, shop) => {
+const updateAccount = async (move, isMoveAdded = true, shop, opts) => {
   const { subType, amount, account } = move;
   try {
-    const accounts = await Account.find({ shop }).then((docs) => {
-      return docs;
-    });
+    const accounts = await Account.find({ shop }).session(opts.session).exec();
 
     if (subType === "gain") {
       if (isMoveAdded) {
