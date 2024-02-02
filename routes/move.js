@@ -16,7 +16,7 @@ const yesterday = new Date();
 yesterday.setDate(yesterday.getDate() - 1);
 
 const stripNumber = (number) => {
-  return parseFloat(number.toPrecision(1));
+  return parseFloat(Number(number).toPrecision(1));
 };
 
 // router.get("/test", async (req, res) => {
