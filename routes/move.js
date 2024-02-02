@@ -15,6 +15,10 @@ const today = new Date();
 const yesterday = new Date();
 yesterday.setDate(yesterday.getDate() - 1);
 
+const stripNumber = (number) => {
+  return parseFloat(number.toPrecision(0));
+};
+
 // router.get("/test", async (req, res) => {
 //   try {
 //     const moves = await Move.find();
@@ -188,7 +192,9 @@ router.delete("/", isAuth, isAdmin, (req, res) => {
 const updateAccount = async (move, isMoveAdded = true, shop, opts) => {
   const { subType, amount, account } = move;
   try {
-    const accounts = await Account.find({ shop }).session(opts.session).exec();
+    const accounts = await Account.find({ shop: shop })
+      .session(opts.session)
+      .exec();
 
     if (subType === "gain") {
       if (isMoveAdded) {
@@ -238,21 +244,31 @@ const updateAccount = async (move, isMoveAdded = true, shop, opts) => {
 
       if (isMoveAdded) {
         await Account.findByIdAndUpdate(caisseAccount._id, {
-          lastMove: { type: "entrée", amount: Number(amount) },
-          deposit: Number(caisseAccount.deposit) + Number(amount),
+          lastMove: { type: "entrée", amount: stripNumber(amount) },
+          deposit: stripNumber(Number(caisseAccount.deposit) + Number(amount)),
         });
         await Account.findByIdAndUpdate(saleAccount._id, {
-          lastMove: { type: "sortie", amount: Number(amount) / Number(rate) },
-          deposit: Number(saleAccount.deposit) - Number(amount) / Number(rate),
+          lastMove: {
+            type: "sortie",
+            amount: stripNumber(Number(amount) / Number(rate)),
+          },
+          deposit: stripNumber(
+            Number(saleAccount.deposit) - Number(amount) / Number(rate)
+          ),
         });
       } else {
         await Account.findByIdAndUpdate(caisseAccount._id, {
-          lastMove: { type: "sortie", amount: Number(amount) },
-          deposit: Number(caisseAccount.deposit) - Number(amount),
+          lastMove: { type: "sortie", amount: stripNumber(amount) },
+          deposit: stripNumber(Number(caisseAccount.deposit) - Number(amount)),
         });
         await Account.findByIdAndUpdate(saleAccount._id, {
-          lastMove: { type: "entrée", amount: Number(amount) / Number(rate) },
-          deposit: Number(saleAccount.deposit) + Number(amount) / Number(rate),
+          lastMove: {
+            type: "entrée",
+            amount: stripNumber(Number(amount) / Number(rate)),
+          },
+          deposit: stripNumber(
+            Number(saleAccount.deposit) + Number(amount) / Number(rate)
+          ),
         });
       }
     }
