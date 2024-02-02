@@ -242,10 +242,13 @@ const updateAccount = async (move, isMoveAdded = true, shop, opts) => {
           deposit: Number(caisseAccount.deposit) + Number(amount),
         });
         await Account.findByIdAndUpdate(saleAccount._id, {
-          lastMove: { type: "sortie", amount: Number(amount) / Number(rate) },
+          lastMove: {
+            type: "sortie",
+            amount: (Number(amount) / Number(rate)).toFixed(0),
+          },
           deposit:
             Number(saleAccount.deposit) -
-            (Number(amount) / Number(rate)).toFixed(0),
+            Number((Number(amount) / Number(rate)).toFixed(0)),
         });
       } else {
         await Account.findByIdAndUpdate(caisseAccount._id, {
@@ -259,7 +262,7 @@ const updateAccount = async (move, isMoveAdded = true, shop, opts) => {
           },
           deposit:
             Number(saleAccount.deposit) +
-            (Number(amount) / Number(rate)).toFixed(0),
+            Number((Number(amount) / Number(rate)).toFixed(0)),
         });
       }
     }
