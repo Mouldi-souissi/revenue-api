@@ -61,7 +61,7 @@ router.post("/login", async (req, res) => {
   res.header("token", token).send(token);
 });
 
-router.get("/", isAuth, isAdmin, (req, res) => {
+router.get("/", isAuth, (req, res) => {
   User.find()
     .sort({ _id: -1 })
     .then((users) => res.status(200).send(users))
