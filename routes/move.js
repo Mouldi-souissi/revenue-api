@@ -127,7 +127,7 @@ router.post("/", isAuth, async (req, res) => {
   });
 });
 
-router.get("/:period", isAuth, isAdmin, (req, res) => {
+router.get("/:period", isAuth, (req, res) => {
   const period = req.params.period;
   let query = "";
 
