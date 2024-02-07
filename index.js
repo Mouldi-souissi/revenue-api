@@ -8,6 +8,7 @@ const user = require("./routes/user");
 const account = require("./routes/account");
 const move = require("./routes/move");
 const shop = require("./routes/shop");
+const history = require("./routes/history");
 
 // connect to DB
 connect();
@@ -21,6 +22,7 @@ app.use("/api/user", user);
 app.use("/api/account", account);
 app.use("/api/move", move);
 app.use("/api/shop", shop);
+app.use("/api/history", history);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, (err) => {
