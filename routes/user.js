@@ -56,13 +56,13 @@ router.post("/login", async (req, res) => {
   // create token
   const token = jwt.sign(
     { id: user._id, name: user.name, type: user.type, shop: user.shop },
-    "secret"
+    "secret",
   );
   res.header("token", token).send(token);
 });
 
 router.get("/", isAuth, (req, res) => {
-  User.find()
+  User.find({ shop: req.user.shop })
     .sort({ _id: -1 })
     .then((users) => res.status(200).send(users))
     .catch((err) => res.status(400).send(err));
