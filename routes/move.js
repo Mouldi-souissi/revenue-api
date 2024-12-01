@@ -25,19 +25,20 @@ router.get("/revenue/:start/:end/:user", isAuth, async (req, res) => {
     const end = utcToZonedTime(new Date(req.params.end), tunisZone);
     const user = req.params.user;
 
-    let query = {
+    let query = {};
+
+    if (user !== "all") {
+      query = { user: user };
+    }
+
+    const moves = await Move.find({
+      shop: req.user.shop,
       date: {
         $gte: start,
         $lte: end,
       },
-      shop: req.user.shop,
-    };
-
-    if (user !== "all") {
-      query = { ...query, user: user };
-    }
-
-    const moves = await Move.find(query);
+      query,
+    });
 
     let totalSales = 0;
     let totalWins = 0;
@@ -61,6 +62,7 @@ router.get("/revenue/:start/:end/:user", isAuth, async (req, res) => {
 
     res.status(200).send({ totalSales, totalWins, totalSpending, revenue });
   } catch (err) {
+    console.log(err);
     res.status(400).send(err);
   }
 });
