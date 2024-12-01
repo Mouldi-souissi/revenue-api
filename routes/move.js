@@ -27,6 +27,7 @@ router.get("/wins", isAuth, (req, res) => {
     },
     shop: req.user.shop,
   })
+    .sort({ date: -1 })
     .then((docs) => res.status(200).send(docs))
     .catch((err) => res.status(400).send(err));
 });
@@ -45,6 +46,7 @@ router.get("/totalWins/:account", isAuth, (req, res) => {
     },
     shop: req.user.shop,
   })
+    .sort({ date: -1 })
     .then((docs) => {
       const totalWins = docs.reduce(
         (acc, curr) => (acc += Number(curr.amount)),
@@ -69,6 +71,7 @@ router.get("/sales", isAuth, (req, res) => {
     },
     shop: req.user.shop,
   })
+    .sort({ date: -1 })
     .then((docs) => res.status(200).send(docs))
     .catch((err) => res.status(400).send(err));
 });
@@ -83,6 +86,7 @@ router.get("/spending", isAuth, (req, res) => {
     date: { $gte: startOfDay(today), $lte: endOfDay(today) },
     shop: req.user.shop,
   })
+    .sort({ date: -1 })
     .then((docs) => res.status(200).send(docs))
     .catch((err) => res.status(400).send(err));
 });
