@@ -11,24 +11,13 @@ const isAuth = require("../permssions/isAuth");
 const isAdmin = require("../permssions/isAdmin");
 const mongoose = require("mongoose");
 
-const today = new Date();
-const yesterday = new Date();
-yesterday.setDate(yesterday.getDate() - 1);
-
-// router.get("/test", async (req, res) => {
-//   try {
-//     const moves = await Move.find();
-//     for (let move of moves) {
-//       await Move.findByIdAndUpdate(move._id, { shop: "aouina" }, { new: true });
-//     }
-//     res.status(200).send("done");
-//   } catch (error) {
-//     console.log(error);
-//     res.status(400).send(error);
-//   }
-// });
+// Adjust Tunisian timezone (UTC+1)
+const tunisianOffset = 1; // Hours difference from UTC
 
 router.get("/wins", isAuth, (req, res) => {
+  const today = new Date();
+  today.setHours(today.getHours() + tunisianOffset);
+
   Move.find({
     type: "sortie",
     subType: "gain",
@@ -43,6 +32,9 @@ router.get("/wins", isAuth, (req, res) => {
 });
 
 router.get("/totalWins/:account", isAuth, (req, res) => {
+  const today = new Date();
+  today.setHours(today.getHours() + tunisianOffset);
+
   Move.find({
     type: "sortie",
     subType: "gain",
@@ -56,7 +48,7 @@ router.get("/totalWins/:account", isAuth, (req, res) => {
     .then((docs) => {
       const totalWins = docs.reduce(
         (acc, curr) => (acc += Number(curr.amount)),
-        0
+        0,
       );
 
       res.json(totalWins);
@@ -65,6 +57,9 @@ router.get("/totalWins/:account", isAuth, (req, res) => {
 });
 
 router.get("/sales", isAuth, (req, res) => {
+  const today = new Date();
+  today.setHours(today.getHours() + tunisianOffset);
+
   Move.find({
     type: "entrée",
     subType: "vente",
@@ -79,6 +74,9 @@ router.get("/sales", isAuth, (req, res) => {
 });
 
 router.get("/spending", isAuth, (req, res) => {
+  const today = new Date();
+  today.setHours(today.getHours() + tunisianOffset);
+
   Move.find({
     type: "sortie",
     subType: "dépense",
@@ -96,6 +94,9 @@ router.post("/", isAuth, async (req, res) => {
 
   const { type, amount, account, description, subType, rate } = req.body;
 
+  const today = new Date();
+  today.setHours(today.getHours() + tunisianOffset);
+
   const move = new Move({
     type,
     subType,
@@ -104,7 +105,7 @@ router.post("/", isAuth, async (req, res) => {
     description,
     rate,
     user: req.user.name,
-    date: new Date(),
+    date: today,
     shop: req.user.shop,
   });
 
@@ -128,6 +129,13 @@ router.post("/", isAuth, async (req, res) => {
 });
 
 router.get("/:period", isAuth, (req, res) => {
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+
+  today.setHours(today.getHours() + tunisianOffset);
+  yesterday.setHours(yesterday.getHours() + tunisianOffset);
+
   const period = req.params.period;
   let query = "";
 

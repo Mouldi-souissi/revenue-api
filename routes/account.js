@@ -3,7 +3,8 @@ const Account = require("../models/Account");
 const isAuth = require("../permssions/isAuth");
 const isAdmin = require("../permssions/isAdmin");
 
-const today = new Date();
+// Adjust Tunisian timezone (UTC+1)
+const tunisianOffset = 1; // Hours difference from UTC
 
 router.post("/", isAuth, async (req, res) => {
   if (!req.body) {
@@ -39,10 +40,13 @@ router.get("/:name", isAuth, (req, res) => {
 });
 
 router.put("/:id", isAuth, (req, res) => {
+  const today = new Date();
+  today.setHours(today.getHours() + tunisianOffset);
+
   Account.findByIdAndUpdate(
     req.params.id,
     { ...req.body, lastUpdated: today },
-    { new: true }
+    { new: true },
   )
     .then((doc) => res.json(doc))
     .catch((err) => res.send(err));
