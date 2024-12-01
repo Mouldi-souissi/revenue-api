@@ -1,12 +1,15 @@
 const router = require("express").Router();
 const Move = require("../models/Move");
 const Account = require("../models/Account");
-const endOfDay = require("date-fns/endOfDay");
-const startOfDay = require("date-fns/startOfDay");
-const startOfWeek = require("date-fns/startOfWeek");
-const endOfWeek = require("date-fns/endOfWeek");
-const startOfMonth = require("date-fns/startOfMonth");
-const endOfMonth = require("date-fns/endOfMonth");
+const {
+  endOfDay,
+  startOfDay,
+  startOfWeek,
+  endOfWeek,
+  startOfMonth,
+  endOfMonth,
+} = require("date-fns");
+
 const isAuth = require("../permssions/isAuth");
 const isAdmin = require("../permssions/isAdmin");
 const mongoose = require("mongoose");
