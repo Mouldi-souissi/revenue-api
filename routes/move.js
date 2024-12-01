@@ -10,9 +10,57 @@ const endOfMonth = require("date-fns/endOfMonth");
 const isAuth = require("../permssions/isAuth");
 const isAdmin = require("../permssions/isAdmin");
 const mongoose = require("mongoose");
+const { utcToZonedTime } = require("date-fns-tz");
 
 // Adjust Tunisian timezone (UTC+1)
 const tunisianOffset = 1; // Hours difference from UTC
+const tunisZone = "Africa/Tunis";
+
+router.get("/revenue/:start/:end/:user", isAuth, async (req, res) => {
+  try {
+    const start = utcToZonedTime(new Date(req.params.start), tunisZone);
+    const end = utcToZonedTime(new Date(req.params.end), tunisZone);
+    const user = req.params.user;
+
+    let query = {
+      date: {
+        $gte: start,
+        $lte: end,
+      },
+      shop: req.user.shop,
+    };
+
+    if (user !== "all") {
+      query = { ...query, user: user };
+    }
+
+    const moves = await find(query);
+
+    let totalSales = 0;
+    let totalWins = 0;
+    let totalSpending = 0;
+
+    for (move of moves) {
+      if (move.subType === "vente") {
+        totalSales += Number(move.amount);
+      }
+
+      if (move.subType === "gain") {
+        totalWins += Number(move.amount);
+      }
+
+      if (move.subType === "dépense") {
+        totalSpending += Number(move.amount);
+      }
+    }
+
+    let revenue = totalSales - totalWins - totalSpending;
+
+    res.status(200).send({ totalSales, totalWins, totalSpending, revenue });
+  } catch (err) {
+    res.status(400).send(err);
+  }
+});
 
 router.get("/wins", isAuth, (req, res) => {
   const today = new Date();
