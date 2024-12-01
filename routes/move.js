@@ -37,7 +37,7 @@ router.get("/revenue/:start/:end/:user", isAuth, async (req, res) => {
       query = { ...query, user: user };
     }
 
-    const moves = await find(query);
+    const moves = await Move.find(query);
 
     let totalSales = 0;
     let totalWins = 0;
