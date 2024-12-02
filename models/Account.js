@@ -4,7 +4,7 @@ const accountSchema = new mongoose.Schema({
   name: { type: String, required: true },
   deposit: { type: String, default: "0", required: true },
   img: { type: String },
-  lastUpdated: { type: Date },
+  lastUpdated: { type: Date, default: () => new Date() },
   lastMove: {
     type: { type: String, default: "" },
     amount: { type: String, default: "0" },

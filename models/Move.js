@@ -9,12 +9,7 @@ const moveSchema = new mongoose.Schema({
   user: { type: String, required: true },
   date: {
     type: Date,
-    default: () => {
-      const now = new Date();
-      // Adjusting to Tunisian time (UTC+1)
-      now.setHours(now.getHours() + 1);
-      return now;
-    },
+    default: () => new Date(),
   },
   shop: { type: String, default: "aouina" },
 });

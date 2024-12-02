@@ -1,35 +1,26 @@
 const router = require("express").Router();
 const Move = require("../models/Move");
 const Account = require("../models/Account");
-const {
-  endOfDay,
-  startOfDay,
-  startOfWeek,
-  endOfWeek,
-  startOfMonth,
-  endOfMonth,
-} = require("date-fns");
-
 const isAuth = require("../permssions/isAuth");
 const isAdmin = require("../permssions/isAdmin");
 const mongoose = require("mongoose");
-const { utcToZonedTime } = require("date-fns-tz");
-
-// Adjust Tunisian timezone (UTC+1)
-const tunisianOffset = 1; // Hours difference from UTC
-const tunisZone = "Africa/Tunis";
+const {
+  getTodayRange,
+  getYesterdayRange,
+  getWeekRange,
+  getMonthRange,
+} = require("../helpers/dateAndTime");
 
 router.get("/revenue/:start/:end/:user", isAuth, async (req, res) => {
   try {
-    const start = utcToZonedTime(new Date(req.params.start), tunisZone);
-    const end = utcToZonedTime(new Date(req.params.end), tunisZone);
+    const { start, end } = getTodayRange();
     const user = req.params.user;
 
-    let query = {};
+    let query = null;
 
-    if (user !== "all") {
-      query = { user: user };
-    }
+    // if (user !== "all") {
+    //   query = { user: user };
+    // }
 
     const moves = await Move.find({
       shop: req.user.shop,
@@ -37,7 +28,6 @@ router.get("/revenue/:start/:end/:user", isAuth, async (req, res) => {
         $gte: start,
         $lte: end,
       },
-      query,
     });
 
     let totalSales = 0;
@@ -62,21 +52,19 @@ router.get("/revenue/:start/:end/:user", isAuth, async (req, res) => {
 
     res.status(200).send({ totalSales, totalWins, totalSpending, revenue });
   } catch (err) {
-    console.log(err);
     res.status(400).send(err);
   }
 });
 
 router.get("/wins", isAuth, (req, res) => {
-  const today = new Date();
-  today.setHours(today.getHours() + tunisianOffset);
+  const { start, end } = getTodayRange();
 
   Move.find({
     type: "sortie",
     subType: "gain",
     date: {
-      $gte: startOfDay(today),
-      $lte: endOfDay(today),
+      $gte: start,
+      $lte: end,
     },
     shop: req.user.shop,
   })
@@ -86,16 +74,15 @@ router.get("/wins", isAuth, (req, res) => {
 });
 
 router.get("/totalWins/:account", isAuth, (req, res) => {
-  const today = new Date();
-  today.setHours(today.getHours() + tunisianOffset);
+  const { start, end } = getTodayRange();
 
   Move.find({
     type: "sortie",
     subType: "gain",
     account: req.params.account,
     date: {
-      $gte: startOfDay(today),
-      $lte: endOfDay(today),
+      $gte: start,
+      $lte: end,
     },
     shop: req.user.shop,
   })
@@ -112,15 +99,14 @@ router.get("/totalWins/:account", isAuth, (req, res) => {
 });
 
 router.get("/sales", isAuth, (req, res) => {
-  const today = new Date();
-  today.setHours(today.getHours() + tunisianOffset);
+  const { start, end } = getTodayRange();
 
   Move.find({
     type: "entrée",
     subType: "vente",
     date: {
-      $gte: startOfDay(today),
-      $lte: endOfDay(today),
+      $gte: start,
+      $lte: end,
     },
     shop: req.user.shop,
   })
@@ -130,13 +116,12 @@ router.get("/sales", isAuth, (req, res) => {
 });
 
 router.get("/spending", isAuth, (req, res) => {
-  const today = new Date();
-  today.setHours(today.getHours() + tunisianOffset);
+  const { start, end } = getTodayRange();
 
   Move.find({
     type: "sortie",
     subType: "dépense",
-    date: { $gte: startOfDay(today), $lte: endOfDay(today) },
+    date: { $gte: start, $lte: end },
     shop: req.user.shop,
   })
     .sort({ date: -1 })
@@ -151,9 +136,6 @@ router.post("/", isAuth, async (req, res) => {
 
   const { type, amount, account, description, subType, rate } = req.body;
 
-  const today = new Date();
-  today.setHours(today.getHours() + tunisianOffset);
-
   const move = new Move({
     type,
     subType,
@@ -162,7 +144,7 @@ router.post("/", isAuth, async (req, res) => {
     description,
     rate,
     user: req.user.name,
-    date: today,
+    date: new Date(),
     shop: req.user.shop,
   });
 
@@ -187,30 +169,27 @@ router.post("/", isAuth, async (req, res) => {
 
 router.get("/:period", isAuth, (req, res) => {
   const today = new Date();
-  const yesterday = new Date();
-  yesterday.setDate(today.getDate() - 1);
-
-  today.setHours(today.getHours() + tunisianOffset);
-  yesterday.setHours(yesterday.getHours() + tunisianOffset);
 
   const period = req.params.period;
   let query = "";
 
   if (period === "daily") {
-    query = { $gte: startOfDay(today), $lte: endOfDay(today) };
+    const { start, end } = getTodayRange();
+    query = { $gte: start, $lte: end };
   }
   if (period === "yesterday") {
-    query = { $gte: startOfDay(yesterday), $lte: startOfDay(today) };
+    const { start, end } = getYesterdayRange();
+    query = { $gte: start, $lt: end };
   }
   if (period === "weekly") {
-    query = {
-      $gte: startOfWeek(today, { weekStartsOn: 1 }),
-      $lte: endOfWeek(today, { weekStartsOn: 1 }),
-    };
+    const { start, end } = getWeekRange();
+    query = { $gte: start, $lt: end };
   }
   if (period === "monthly") {
-    query = { $gte: startOfMonth(today), $lte: endOfMonth(today) };
+    const { start, end } = getMonthRange();
+    query = { $gte: start, $lt: end };
   }
+
   Move.find({ date: query, shop: req.user.shop })
     .sort({ date: -1 })
     .then((docs) => res.status(200).send(docs))
