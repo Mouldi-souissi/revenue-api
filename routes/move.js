@@ -13,26 +13,28 @@ const {
 
 router.get("/revenue/:start/:end/:user", isAuth, async (req, res) => {
   try {
-    const { start, end } = getTodayRange();
+    const start = req.params.start;
+    const end = req.params.end;
     const user = req.params.user;
 
-    let query = null;
-
-    // if (user !== "all") {
-    //   query = { user: user };
-    // }
-
-    const moves = await Move.find({
+    let query = {
       shop: req.user.shop,
       date: {
-        $gte: start,
-        $lte: end,
+        $gte: new Date(start),
+        $lte: new Date(end),
       },
-    });
+    };
+
+    if (user && user !== "all") {
+      query = { ...query, user: user };
+    }
+
+    const moves = await Move.find(query);
 
     let totalSales = 0;
     let totalWins = 0;
     let totalSpending = 0;
+    let revenue = 0;
 
     for (move of moves) {
       if (move.subType === "vente") {
@@ -48,7 +50,7 @@ router.get("/revenue/:start/:end/:user", isAuth, async (req, res) => {
       }
     }
 
-    let revenue = totalSales - totalWins - totalSpending;
+    revenue = totalSales - totalWins - totalSpending;
 
     res.status(200).send({ totalSales, totalWins, totalSpending, revenue });
   } catch (err) {
