@@ -10,7 +10,6 @@ router.post("/", isAuth, async (req, res) => {
 
   const account = new Account({
     name: req.body.name,
-    img: req.body.img,
     deposit: req.body.deposit,
     shop: req.user.shop,
   });

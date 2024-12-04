@@ -1,11 +1,22 @@
 const mongoose = require("mongoose");
 
+const account = new mongoose.Schema({
+  name: String,
+  deposit: String,
+});
+
 const history = new mongoose.Schema({
-  date: { type: Date },
+  date: {
+    type: Date,
+    default: () => new Date(),
+  },
   shop: { type: String, default: "aouina" },
-  accountFond: { type: String },
-  accountBet: { type: String },
-  accountMax: { type: String },
+  accountsBefore: [account],
+  accountsAfter: [account],
+  moveSubType: String,
+  user: String,
+  isUndo: { type: Boolean, default: false },
+  amount: String,
 });
 
 module.exports = mongoose.model("History", history);
