@@ -4,6 +4,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const isAuth = require("../permssions/isAuth");
 const isAdmin = require("../permssions/isAdmin");
+require("dotenv").config();
 
 // register
 // public route
@@ -20,7 +21,7 @@ router.post("/register", isAuth, isAdmin, async (req, res) => {
     email: req.body.email,
     password: hashedPassword,
     type: req.body.type,
-    shop: req.body.shop || "aouina",
+    shop: req.user.shop || "aouina",
   });
   try {
     const addedUser = await user.save();
@@ -44,25 +45,17 @@ router.post("/login", async (req, res) => {
     return res.status(400).send("invalid credentials");
   }
 
-  // check if user is not blocked
-  if (user.status === "blocked") {
-    return res.status(401).send("user has been blocked");
-  }
-
-  if (user.shop !== req.body.shop) {
-    return res.status(401).send("wrong shop");
-  }
-
   // create token
   const token = jwt.sign(
     { id: user._id, name: user.name, type: user.type, shop: user.shop },
-    "secret",
+    process.env.JWTsecret,
   );
   res.header("token", token).send(token);
 });
 
 router.get("/", isAuth, (req, res) => {
   User.find({ shop: req.user.shop })
+    .select({ password: 0 })
     .sort({ _id: -1 })
     .then((users) => res.status(200).send(users))
     .catch((err) => res.status(400).send(err));
