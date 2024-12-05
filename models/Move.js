@@ -12,6 +12,8 @@ const moveSchema = new mongoose.Schema({
     default: () => new Date(),
   },
   shop: { type: String, default: "aouina" },
+  shopId: String,
+  userId: String,
 });
 
 module.exports = mongoose.model("Move", moveSchema);

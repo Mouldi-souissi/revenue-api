@@ -17,6 +17,8 @@ const history = new mongoose.Schema({
   user: String,
   isUndo: { type: Boolean, default: false },
   amount: String,
+  shopId: String,
+  userId: String,
 });
 
 module.exports = mongoose.model("History", history);
