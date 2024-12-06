@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const tokenVersion = require("../tokenVersion");
 require("dotenv").config();
 
 module.exports = function (req, res, next) {
@@ -12,12 +13,13 @@ module.exports = function (req, res, next) {
 
     if (
       !verified.hasOwnProperty("tokenVersion") ||
-      verified.tokenVersion != process.env.tokenVersion
+      verified.tokenVersion != tokenVersion
     ) {
       return res
         .status(401)
         .json({ message: "Token version mismatch, please re-login" });
     }
+
     req.user = verified;
     next();
   } catch (err) {

@@ -4,6 +4,8 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const isAuth = require("../permssions/isAuth");
 const isAdmin = require("../permssions/isAdmin");
+const tokenVersion = require("../tokenVersion");
+
 require("dotenv").config();
 
 router.post("/register", isAuth, isAdmin, async (req, res) => {
@@ -62,7 +64,7 @@ router.post("/login", async (req, res) => {
         type: user.type,
         shop: user.shop,
         shopId: user.shopId,
-        tokenVersion: process.env.tokenVersion,
+        tokenVersion,
       },
       process.env.JWTsecret,
       { expiresIn: "2h" },
