@@ -12,6 +12,43 @@ const {
 } = require("../helpers/dateAndTime");
 const History = require("../models/History");
 
+router.get("/:period/:subType", isAuth, async (req, res) => {
+  try {
+    const { period, subType } = req.params;
+    const today = new Date();
+
+    let query = {};
+
+    if (period === "daily") {
+      const { start, end } = getTodayRange();
+      query.date = { $gte: start, $lte: end };
+    }
+    if (period === "yesterday") {
+      const { start, end } = getYesterdayRange();
+      query.date = { $gte: start, $lt: end };
+    }
+    if (period === "weekly") {
+      const { start, end } = getWeekRange();
+      query.date = { $gte: start, $lt: end };
+    }
+    if (period === "monthly") {
+      const { start, end } = getMonthRange();
+      query.date = { $gte: start, $lt: end };
+    }
+    if (subType && subType != "all") {
+      query.subType = subType;
+    }
+
+    query.shop = req.user.shop;
+
+    const moves = await Move.find(query).sort({ date: -1 });
+
+    res.status(200).send(moves);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+});
+
 router.get("/revenue/:start/:end/:user", isAuth, async (req, res) => {
   try {
     const start = req.params.start;
@@ -27,7 +64,7 @@ router.get("/revenue/:start/:end/:user", isAuth, async (req, res) => {
     };
 
     if (user && user !== "all") {
-      query = { ...query, user: user };
+      query.user = user;
     }
 
     const moves = await Move.find(query);
@@ -59,79 +96,6 @@ router.get("/revenue/:start/:end/:user", isAuth, async (req, res) => {
   }
 });
 
-router.get("/wins", isAuth, (req, res) => {
-  const { start, end } = getTodayRange();
-
-  Move.find({
-    type: "sortie",
-    subType: "gain",
-    date: {
-      $gte: start,
-      $lte: end,
-    },
-    shop: req.user.shop,
-  })
-    .sort({ date: -1 })
-    .then((docs) => res.status(200).send(docs))
-    .catch((err) => res.status(400).send(err));
-});
-
-router.get("/totalWins/:account", isAuth, (req, res) => {
-  const { start, end } = getTodayRange();
-
-  Move.find({
-    type: "sortie",
-    subType: "gain",
-    account: req.params.account,
-    date: {
-      $gte: start,
-      $lte: end,
-    },
-    shop: req.user.shop,
-  })
-    .sort({ date: -1 })
-    .then((docs) => {
-      const totalWins = docs.reduce(
-        (acc, curr) => (acc += Number(curr.amount)),
-        0,
-      );
-
-      res.json(totalWins);
-    })
-    .catch((err) => res.status(400).send(err));
-});
-
-router.get("/sales", isAuth, (req, res) => {
-  const { start, end } = getTodayRange();
-
-  Move.find({
-    type: "entrée",
-    subType: "vente",
-    date: {
-      $gte: start,
-      $lte: end,
-    },
-    shop: req.user.shop,
-  })
-    .sort({ date: -1 })
-    .then((docs) => res.status(200).send(docs))
-    .catch((err) => res.status(400).send(err));
-});
-
-router.get("/spending", isAuth, (req, res) => {
-  const { start, end } = getTodayRange();
-
-  Move.find({
-    type: "sortie",
-    subType: "dépense",
-    date: { $gte: start, $lte: end },
-    shop: req.user.shop,
-  })
-    .sort({ date: -1 })
-    .then((docs) => res.status(200).send(docs))
-    .catch((err) => res.status(400).send(err));
-});
-
 router.post("/", isAuth, async (req, res) => {
   const session = await mongoose.startSession().catch((err) => {
     console.error("Error starting session:", err);
@@ -157,6 +121,8 @@ router.post("/", isAuth, async (req, res) => {
       user: req.user.name,
       date: new Date(),
       shop: req.user.shop,
+      shopId: req.user.shopId,
+      userId: req.user.id,
     });
 
     await session.startTransaction();
@@ -261,6 +227,8 @@ router.post("/", isAuth, async (req, res) => {
       accountsBefore: accounts,
       accountsAfter,
       shop: req.user.shop,
+      shopId: req.user.shopId,
+      userId: req.user.id,
       amount,
       isUndo: false,
     });
@@ -395,6 +363,8 @@ router.delete("/:id", isAuth, async (req, res) => {
       accountsBefore: accounts,
       accountsAfter,
       shop: req.user.shop,
+      shopId: req.user.shopId,
+      userId: req.user.id,
       amount,
       isUndo: true,
     });
@@ -412,45 +382,44 @@ router.delete("/:id", isAuth, async (req, res) => {
   }
 });
 
-router.get("/:period", isAuth, (req, res) => {
-  const today = new Date();
-
-  const period = req.params.period;
-  let query = "";
-
-  if (period === "daily") {
-    const { start, end } = getTodayRange();
-    query = { $gte: start, $lte: end };
-  }
-  if (period === "yesterday") {
-    const { start, end } = getYesterdayRange();
-    query = { $gte: start, $lt: end };
-  }
-  if (period === "weekly") {
-    const { start, end } = getWeekRange();
-    query = { $gte: start, $lt: end };
-  }
-  if (period === "monthly") {
-    const { start, end } = getMonthRange();
-    query = { $gte: start, $lt: end };
-  }
-
-  Move.find({ date: query, shop: req.user.shop })
-    .sort({ date: -1 })
-    .then((docs) => res.status(200).send(docs))
-    .catch((err) => res.status(400).send(err));
-});
-
+// not used
 router.put("/:id", isAuth, isAdmin, (req, res) => {
   Move.findByIdAndUpdate(req.params.id, req.body, { new: true })
     .then((doc) => res.status(200).send(doc))
     .catch((err) => res.status(400).send(err));
 });
 
-router.delete("/", isAuth, isAdmin, (req, res) => {
-  Move.remove({})
-    .then(() => res.status(200).send("moves removed"))
+router.delete("/manual/:id", isAuth, isAdmin, (req, res) => {
+  Move.findByIdAndRemove(req.params.id)
+    .then(() => res.status(200).send("move deleted"))
     .catch((err) => res.status(400).send(err));
+});
+
+// router.delete("/", isAuth, isAdmin, (req, res) => {
+//   Move.remove({})
+//     .then(() => res.status(200).send("moves removed"))
+//     .catch((err) => res.status(400).send(err));
+// });
+
+router.get("/sync", isAuth, async (req, res) => {
+  try {
+    const aouinaId = "654ff17b2910fb570bface2c";
+    const ainId = "654ff150a3d963abb8aa17df";
+
+    await Move.updateMany(
+      { shop: "aouina" },
+      { $set: { shopId: aouinaId, userId: req.user.id } },
+    );
+
+    await Move.updateMany(
+      { shop: "hamma shop" },
+      { $set: { shopId: ainId, userId: req.user.id } },
+    );
+
+    res.status(200).send("sync done");
+  } catch (err) {
+    res.status(400).send(err);
+  }
 });
 
 module.exports = router;
