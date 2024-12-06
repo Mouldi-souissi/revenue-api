@@ -31,7 +31,7 @@ router.post("/register", isAuth, isAdmin, async (req, res) => {
       shopId: req.user.shopId,
     });
     const addedUser = await user.save();
-    res.send(addedUser);
+    res.status(201).send(addedUser);
   } catch (err) {
     res.status(400).send(err);
   }
@@ -62,6 +62,7 @@ router.post("/login", async (req, res) => {
         type: user.type,
         shop: user.shop,
         shopId: user.shopId,
+        tokenVersion: process.env.tokenVersion,
       },
       process.env.JWTsecret,
       { expiresIn: "2h" },
@@ -75,13 +76,7 @@ router.post("/login", async (req, res) => {
 
 router.get("/", isAuth, async (req, res) => {
   try {
-    let tempQuery = { shop: req.user.shop };
-
-    if (req.user.shopId) {
-      tempQuery = { shopId: req.user.shopId };
-    }
-
-    const users = await User.find(tempQuery)
+    const users = await User.find({ shopId: req.user.shopId })
       .select({ password: 0 })
       .sort({ _id: -1 });
 
