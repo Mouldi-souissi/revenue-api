@@ -5,8 +5,8 @@ module.exports = function (req, res, next) {
     if (req.user.type !== "admin") {
       return res.status(401).send("admin permission required !");
     }
+    next();
   } catch (err) {
-    res.status(400).send("invalid token");
+    return res.status(401).send("invalid token");
   }
-  next();
 };
