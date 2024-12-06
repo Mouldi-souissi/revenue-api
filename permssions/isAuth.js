@@ -23,16 +23,16 @@ module.exports = function (req, res, next) {
     req.user = verified;
     next();
   } catch (err) {
-    if (error.name === "TokenExpiredError") {
+    if (err.name === "TokenExpiredError") {
       return res
         .status(401)
         .json({ message: "Token expired, please re-login" });
-    } else if (error.name === "JsonWebTokenError") {
+    } else if (err.name === "JsonWebTokenError") {
       return res
         .status(401)
         .json({ message: "Invalid token, please re-login" });
     }
-    console.error("Unexpected error during authentication:", error);
+    console.error("Unexpected error during authentication:", err);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
