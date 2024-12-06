@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
-const connect = require("./db/connect");
+const connectToMongoDB = require("./db/connectToMongoDB");
 
 // import routes
 const user = require("./routes/user");
@@ -11,7 +11,7 @@ const shop = require("./routes/shop");
 const history = require("./routes/history");
 
 // connect to DB
-connect();
+connectToMongoDB();
 
 // middlewares
 app.use(express.json());
