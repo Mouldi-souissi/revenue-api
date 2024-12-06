@@ -34,7 +34,7 @@ router.get("/", isAuth, async (req, res) => {
       tempQuery = { shopId: req.user.shopId };
     }
 
-    const accounts = Account.find(tempQuery).sort({ _id: -1 });
+    const accounts = await Account.find(tempQuery).sort({ _id: -1 });
     res.status(200).send(accounts);
   } catch (err) {
     res.status(400).send(err);
