@@ -64,6 +64,7 @@ router.post("/login", async (req, res) => {
         shopId: user.shopId,
       },
       process.env.JWTsecret,
+      { expiresIn: "2h" },
     );
 
     res.header("token", token).send(token);
@@ -100,29 +101,6 @@ router.put("/:id", isAuth, (req, res) => {
   User.findByIdAndUpdate(req.params.id, req.body, { new: true })
     .then((doc) => res.json(doc))
     .catch((err) => res.send(err));
-});
-
-router.get("/sync", isAuth, async (req, res) => {
-  try {
-    const aouinaId = "654ff17b2910fb570bface2c";
-    const ainId = "654ff150a3d963abb8aa17df";
-
-    const users = await User.find().select({ password: 0 }).sort({ _id: -1 });
-
-    for (let user of users) {
-      if (user.shop === "aouina") {
-        await User.findByIdAndUpdate(user._id, { shopId: aouinaId });
-      }
-
-      if (user.shop === "hamma shop") {
-        await User.findByIdAndUpdate(user._id, { shopId: ainId });
-      }
-    }
-
-    res.status(200).send("sync done");
-  } catch (err) {
-    res.status(400).send(err);
-  }
 });
 
 module.exports = router;
