@@ -39,7 +39,7 @@ router.get("/:period/:subType", isAuth, async (req, res) => {
       query.subType = subType;
     }
 
-    query.shopId = req.user.shopId;
+    query.shop = req.user.shop;
 
     const moves = await Move.find(query).sort({ date: -1 });
 
@@ -56,7 +56,7 @@ router.get("/revenue/:start/:end/:user", isAuth, async (req, res) => {
     const user = req.params.user;
 
     let query = {
-      shopId: req.user.shopId,
+      shop: req.user.shop,
       date: {
         $gte: new Date(start),
         $lte: new Date(end),
@@ -129,13 +129,13 @@ router.post("/", isAuth, async (req, res) => {
 
     const doc = await move.save({ session });
 
-    const accounts = await Account.find({ shopId: req.user.shopId }).session(
+    const accounts = await Account.find({ shop: req.user.shop }).session(
       session,
     );
 
     if (subType === "gain") {
       const gainAccount = accounts.find((acc) => acc.name === account);
-      const caisseAccount = accounts.find((acc) => acc.type === "primary");
+      const caisseAccount = accounts.find((acc) => acc.name === "Fond");
 
       await Account.findByIdAndUpdate(
         gainAccount._id,
@@ -157,7 +157,7 @@ router.post("/", isAuth, async (req, res) => {
     }
 
     if (subType === "dépense") {
-      const caisseAccount = accounts.find((acc) => acc.type === "primary");
+      const caisseAccount = accounts.find((acc) => acc.name === "Fond");
       await Account.findByIdAndUpdate(
         caisseAccount._id,
         {
@@ -169,7 +169,7 @@ router.post("/", isAuth, async (req, res) => {
     }
 
     if (subType === "vente") {
-      const caisseAccount = accounts.find((acc) => acc.type === "primary");
+      const caisseAccount = accounts.find((acc) => acc.name === "Fond");
       const saleAccount = accounts.find((acc) => acc.name === account);
 
       await Account.findByIdAndUpdate(
@@ -206,7 +206,7 @@ router.post("/", isAuth, async (req, res) => {
     }
 
     if (subType === "retrait") {
-      const depositAccount = accounts.find((acc) => acc.type === "primary");
+      const depositAccount = accounts.find((acc) => acc.name === "Fond");
       await Account.findByIdAndUpdate(
         depositAccount._id,
         {
@@ -217,9 +217,9 @@ router.post("/", isAuth, async (req, res) => {
       );
     }
 
-    const accountsAfter = await Account.find({
-      shopId: req.user.shopId,
-    }).session(session);
+    const accountsAfter = await Account.find({ shop: req.user.shop }).session(
+      session,
+    );
 
     const history = new History({
       moveSubType: subType,
@@ -266,9 +266,7 @@ router.delete("/:id", isAuth, async (req, res) => {
     await Move.findByIdAndRemove(req.params.id, { session });
     // update accounts
 
-    const accounts = await Account.find({ shopId: req.user.shopId }).session(
-      session,
-    );
+    const accounts = await Account.find({ shop }).session(session);
 
     if (subType === "gain") {
       const gainAccount = accounts.find((acc) => acc.name === account);
@@ -281,7 +279,7 @@ router.delete("/:id", isAuth, async (req, res) => {
         { session },
       );
 
-      const caisseAccount = accounts.find((acc) => acc.type === "primary");
+      const caisseAccount = accounts.find((acc) => acc.name === "Fond");
       await Account.findByIdAndUpdate(
         caisseAccount._id,
         {
@@ -292,7 +290,7 @@ router.delete("/:id", isAuth, async (req, res) => {
       );
     }
     if (subType === "dépense") {
-      const caisseAccount = accounts.find((acc) => acc.type === "primary");
+      const caisseAccount = accounts.find((acc) => acc.name === "Fond");
 
       await Account.findByIdAndUpdate(
         caisseAccount._id,
@@ -304,7 +302,7 @@ router.delete("/:id", isAuth, async (req, res) => {
       );
     }
     if (subType === "vente") {
-      const caisseAccount = accounts.find((acc) => acc.type === "primary");
+      const caisseAccount = accounts.find((acc) => acc.name === "Fond");
       const saleAccount = accounts.find((acc) => acc.name === account);
       const rate = saleAccount.rate;
 
@@ -343,7 +341,7 @@ router.delete("/:id", isAuth, async (req, res) => {
       );
     }
     if (subType === "retrait") {
-      const depositAccount = accounts.find((acc) => acc.type === "primary");
+      const depositAccount = accounts.find((acc) => acc.name === "Fond");
 
       await Account.findByIdAndUpdate(
         depositAccount._id,
@@ -355,9 +353,9 @@ router.delete("/:id", isAuth, async (req, res) => {
       );
     }
 
-    const accountsAfter = await Account.find({
-      shopId: req.user.shopId,
-    }).session(session);
+    const accountsAfter = await Account.find({ shop: req.user.shop }).session(
+      session,
+    );
 
     const history = new History({
       moveSubType: subType,
@@ -403,25 +401,25 @@ router.delete("/manual/:id", isAuth, isAdmin, (req, res) => {
 //     .catch((err) => res.status(400).send(err));
 // });
 
-// router.get("/sync", isAuth, async (req, res) => {
-//   try {
-//     const aouinaId = "654ff17b2910fb570bface2c";
-//     const ainId = "654ff150a3d963abb8aa17df";
+router.get("/sync", isAuth, async (req, res) => {
+  try {
+    const aouinaId = "654ff17b2910fb570bface2c";
+    const ainId = "654ff150a3d963abb8aa17df";
 
-//     await Move.updateMany(
-//       { shop: "aouina" },
-//       { $set: { shopId: aouinaId, userId: req.user.id } },
-//     );
+    await Move.updateMany(
+      { shop: "aouina" },
+      { $set: { shopId: aouinaId, userId: req.user.id } },
+    );
 
-//     await Move.updateMany(
-//       { shop: "hamma shop" },
-//       { $set: { shopId: ainId, userId: req.user.id } },
-//     );
+    await Move.updateMany(
+      { shop: "hamma shop" },
+      { $set: { shopId: ainId, userId: req.user.id } },
+    );
 
-//     res.status(200).send("sync done");
-//   } catch (err) {
-//     res.status(400).send(err);
-//   }
-// });
+    res.status(200).send("sync done");
+  } catch (err) {
+    res.status(400).send(err);
+  }
+});
 
 module.exports = router;
