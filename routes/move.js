@@ -11,6 +11,7 @@ const {
   getMonthRange,
 } = require("../helpers/dateAndTime");
 const History = require("../models/History");
+const { MOVE_SUBTYPES, MOVE_TYPES } = require("../constants");
 
 router.get("/:period/:subType", isAuth, async (req, res) => {
   try {
@@ -75,15 +76,15 @@ router.get("/revenue/:start/:end/:user", isAuth, async (req, res) => {
     let revenue = 0;
 
     for (move of moves) {
-      if (move.subType === "vente") {
+      if (move.subType === MOVE_SUBTYPES.sale) {
         totalSales += Number(move.amount);
       }
 
-      if (move.subType === "gain") {
+      if (move.subType === MOVE_SUBTYPES.win) {
         totalWins += Number(move.amount);
       }
 
-      if (move.subType === "dépense") {
+      if (move.subType === MOVE_SUBTYPES.spending) {
         totalSpending += Number(move.amount);
       }
     }
@@ -109,7 +110,7 @@ router.post("/", isAuth, async (req, res) => {
       return res.status(400).send("Missing data");
     }
 
-    const { type, amount, account, description, subType, rate } = req.body;
+    const { type, amount, account, description, subType, accountId } = req.body;
 
     const move = new Move({
       type,
@@ -117,7 +118,7 @@ router.post("/", isAuth, async (req, res) => {
       amount,
       account,
       description,
-      rate,
+      accountId,
       user: req.user.name,
       date: new Date(),
       shop: req.user.shop,
@@ -133,85 +134,79 @@ router.post("/", isAuth, async (req, res) => {
       session,
     );
 
-    if (subType === "gain") {
-      const gainAccount = accounts.find((acc) => acc.name === account);
-      const caisseAccount = accounts.find((acc) => acc.type === "primary");
+    const primaryAccount = accounts.find((acc) => acc.type === "primary");
+    const moveAccount = accounts.find((acc) => acc.name === account);
 
+    if (subType === MOVE_SUBTYPES.win) {
       await Account.findByIdAndUpdate(
-        gainAccount._id,
+        moveAccount._id,
         {
-          lastMove: { type: "entrée", amount },
-          deposit: Number(gainAccount.deposit) + Number(amount),
+          lastMove: { type: MOVE_TYPES.in, amount },
+          deposit: Number(moveAccount.deposit) + Number(amount),
         },
         { session },
       );
 
       await Account.findByIdAndUpdate(
-        caisseAccount._id,
+        primaryAccount._id,
         {
-          lastMove: { type: "sortie", amount },
-          deposit: Number(caisseAccount.deposit) - Number(amount),
-        },
-        { session },
-      );
-    }
-
-    if (subType === "dépense") {
-      const caisseAccount = accounts.find((acc) => acc.type === "primary");
-      await Account.findByIdAndUpdate(
-        caisseAccount._id,
-        {
-          lastMove: { type: "sortie", amount },
-          deposit: Number(caisseAccount.deposit) - Number(amount),
+          lastMove: { type: MOVE_TYPES.out, amount },
+          deposit: Number(primaryAccount.deposit) - Number(amount),
         },
         { session },
       );
     }
 
-    if (subType === "vente") {
-      const caisseAccount = accounts.find((acc) => acc.type === "primary");
-      const saleAccount = accounts.find((acc) => acc.name === account);
-
+    if (subType === MOVE_SUBTYPES.spending) {
       await Account.findByIdAndUpdate(
-        caisseAccount._id,
+        primaryAccount._id,
         {
-          lastMove: { type: "entrée", amount },
-          deposit: Number(caisseAccount.deposit) + Number(amount),
-        },
-        { session },
-      );
-
-      const saleAmount = (amount / saleAccount.rate).toFixed(0);
-
-      await Account.findByIdAndUpdate(
-        saleAccount._id,
-        {
-          lastMove: { type: "sortie", amount: saleAmount },
-          deposit: Number(saleAccount.deposit) - Number(saleAmount),
+          lastMove: { type: MOVE_TYPES.out, amount },
+          deposit: Number(primaryAccount.deposit) - Number(amount),
         },
         { session },
       );
     }
 
-    if (subType === "versement") {
-      const depositAccount = accounts.find((acc) => acc.name === account);
+    if (subType === MOVE_SUBTYPES.sale) {
       await Account.findByIdAndUpdate(
-        depositAccount._id,
+        primaryAccount._id,
         {
-          lastMove: { type: "entrée", amount },
-          deposit: Number(depositAccount.deposit) + Number(amount),
+          lastMove: { type: MOVE_TYPES.in, amount },
+          deposit: Number(primaryAccount.deposit) + Number(amount),
+        },
+        { session },
+      );
+
+      const saleAmount = (amount / moveAccount.rate).toFixed(0);
+
+      await Account.findByIdAndUpdate(
+        moveAccount._id,
+        {
+          lastMove: { type: MOVE_TYPES.out, amount: saleAmount },
+          deposit: Number(moveAccount.deposit) - Number(saleAmount),
         },
         { session },
       );
     }
 
-    if (subType === "retrait") {
-      const depositAccount = accounts.find((acc) => acc.type === "primary");
+    if (subType === MOVE_SUBTYPES.deposit) {
       await Account.findByIdAndUpdate(
-        depositAccount._id,
+        moveAccount._id,
         {
-          lastMove: { type: "sortie", amount },
-          deposit: Number(depositAccount.deposit) - Number(amount),
+          lastMove: { type: MOVE_TYPES.in, amount },
+          deposit: Number(moveAccount.deposit) + Number(amount),
+        },
+        { session },
+      );
+    }
+
+    if (subType === MOVE_SUBTYPES.withdraw) {
+      await Account.findByIdAndUpdate(
+        moveAccount._id,
+        {
+          lastMove: { type: MOVE_TYPES.out, amount },
+          deposit: Number(moveAccount.deposit) - Number(amount),
         },
         { session },
       );
@@ -270,86 +265,79 @@ router.delete("/:id", isAuth, async (req, res) => {
       session,
     );
 
-    if (subType === "gain") {
-      const gainAccount = accounts.find((acc) => acc.name === account);
+    const primaryAccount = accounts.find((acc) => acc.type === "primary");
+    const moveAccount = accounts.find((acc) => acc.name === account);
+
+    if (subType === MOVE_SUBTYPES.win) {
       await Account.findByIdAndUpdate(
-        gainAccount._id,
+        moveAccount._id,
         {
-          lastMove: { type: "sortie", amount: amount },
-          deposit: Number(gainAccount.deposit) - Number(amount),
+          lastMove: { type: MOVE_TYPES.out, amount: amount },
+          deposit: Number(moveAccount.deposit) - Number(amount),
         },
         { session },
       );
 
-      const caisseAccount = accounts.find((acc) => acc.type === "primary");
       await Account.findByIdAndUpdate(
-        caisseAccount._id,
+        primaryAccount._id,
         {
-          lastMove: { type: "entrée", amount: amount },
-          deposit: Number(caisseAccount.deposit) + Number(amount),
+          lastMove: { type: MOVE_TYPES.in, amount: amount },
+          deposit: Number(primaryAccount.deposit) + Number(amount),
         },
         { session },
       );
     }
-    if (subType === "dépense") {
-      const caisseAccount = accounts.find((acc) => acc.type === "primary");
-
+    if (subType === MOVE_SUBTYPES.spending) {
       await Account.findByIdAndUpdate(
-        caisseAccount._id,
+        primaryAccount._id,
         {
-          lastMove: { type: "entrée", amount: amount },
-          deposit: Number(caisseAccount.deposit) + Number(amount),
+          lastMove: { type: MOVE_TYPES.in, amount: amount },
+          deposit: Number(primaryAccount.deposit) + Number(amount),
         },
         { session },
       );
     }
-    if (subType === "vente") {
-      const caisseAccount = accounts.find((acc) => acc.type === "primary");
-      const saleAccount = accounts.find((acc) => acc.name === account);
-      const rate = saleAccount.rate;
+    if (subType === MOVE_SUBTYPES.sale) {
+      const rate = moveAccount.rate;
 
       await Account.findByIdAndUpdate(
-        caisseAccount._id,
+        primaryAccount._id,
         {
-          lastMove: { type: "sortie", amount: Number(amount) },
-          deposit: Number(caisseAccount.deposit) - Number(amount),
+          lastMove: { type: MOVE_TYPES.out, amount: Number(amount) },
+          deposit: Number(primaryAccount.deposit) - Number(amount),
         },
         { session },
       );
       await Account.findByIdAndUpdate(
-        saleAccount._id,
+        moveAccount._id,
         {
           lastMove: {
-            type: "entrée",
+            type: MOVE_TYPES.in,
             amount: (Number(amount) / Number(rate)).toFixed(0),
           },
           deposit:
-            Number(saleAccount.deposit) +
+            Number(moveAccount.deposit) +
             Number((Number(amount) / Number(rate)).toFixed(0)),
         },
         { session },
       );
     }
-    if (subType === "versement") {
-      const depositAccount = accounts.find((acc) => acc.name === account);
-
+    if (subType === MOVE_SUBTYPES.deposit) {
       await Account.findByIdAndUpdate(
-        depositAccount._id,
+        moveAccount._id,
         {
-          lastMove: { type: "sortie", amount: Number(amount) },
-          deposit: Number(depositAccount.deposit) - Number(amount),
+          lastMove: { type: MOVE_TYPES.out, amount: Number(amount) },
+          deposit: Number(moveAccount.deposit) - Number(amount),
         },
         { session },
       );
     }
-    if (subType === "retrait") {
-      const depositAccount = accounts.find((acc) => acc.type === "primary");
-
+    if (subType === MOVE_SUBTYPES.withdraw) {
       await Account.findByIdAndUpdate(
-        depositAccount._id,
+        moveAccount._id,
         {
-          lastMove: { type: "entrée", amount: Number(amount) },
-          deposit: Number(depositAccount.deposit) + Number(amount),
+          lastMove: { type: MOVE_TYPES.in, amount: Number(amount) },
+          deposit: Number(moveAccount.deposit) + Number(amount),
         },
         { session },
       );
