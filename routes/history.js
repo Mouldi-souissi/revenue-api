@@ -1,8 +1,9 @@
 const router = require("express").Router();
 const History = require("../models/History");
 const isAuth = require("../permssions/isAuth");
+const isAdmin = require("../permssions/isAdmin");
 
-router.get("/:start/:end", isAuth, async (req, res) => {
+router.get("/:start/:end", isAuth, isAdmin, async (req, res) => {
   try {
     const start = req.params.start;
     const end = req.params.end;

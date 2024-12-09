@@ -9,6 +9,7 @@ const account = require("./routes/account");
 const move = require("./routes/move");
 const shop = require("./routes/shop");
 const history = require("./routes/history");
+const backup = require("./routes/backup");
 
 // connect to DB
 connectToMongoDB();
@@ -23,10 +24,11 @@ app.use("/api/account", account);
 app.use("/api/move", move);
 app.use("/api/shop", shop);
 app.use("/api/history", history);
+app.use("/api/backup", backup);
 
 app.use((err, req, res, next) => {
   console.error("Global error handler:", err.message);
-  res
+  return res
     .status(500)
     .json({ message: "Something went wrong, please try again later" });
 });
