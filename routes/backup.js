@@ -1,4 +1,4 @@
-const router = require("express").Router;
+const router = require("express").Router();
 const Move = require("../models/Move");
 const User = require("../models/User");
 const Shop = require("../models/Shop");
