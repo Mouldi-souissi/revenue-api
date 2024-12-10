@@ -19,10 +19,10 @@ app.use(express.json());
 app.use(cors());
 
 // routes
-app.use("/api/user", user);
-app.use("/api/account", account);
-app.use("/api/move", move);
-app.use("/api/shop", shop);
+app.use("/api/users", user);
+app.use("/api/accounts", account);
+app.use("/api/moves", move);
+app.use("/api/shops", shop);
 app.use("/api/history", history);
 app.use("/api/backup", backup);
 
