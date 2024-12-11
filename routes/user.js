@@ -1,103 +1,51 @@
 const router = require("express").Router();
-const User = require("../models/User");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
 const isAuth = require("../permssions/isAuth");
 const isAdmin = require("../permssions/isAdmin");
-const tokenVersion = require("../tokenVersion");
-
-require("dotenv").config();
+const userService = require("../services/userService");
 
 router.post("/register", isAuth, isAdmin, async (req, res) => {
   try {
-    const { name, email, type, password } = req.body;
-
-    if (!name || !email || !type || !password) {
-      return res.status(400).send("invalid payload");
-    }
-
-    // check if user already exists
-    const emailExists = await User.findOne({ email });
-    if (emailExists) return res.status(400).send("email already exists");
-
-    // hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    const user = new User({
-      name,
-      email,
-      password: hashedPassword,
-      type,
-      shop: req.user.shop,
-      shopId: req.user.shopId,
-    });
-    const addedUser = await user.save();
-    res.status(201).send(addedUser);
+    const user = await userService.register(req.body, req.user);
+    res.status(201).send(user);
   } catch (err) {
-    res.status(400).send(err);
+    res.status(400).send(err.message);
   }
 });
 
 router.post("/login", async (req, res) => {
   try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).send("invalid payload");
-    }
-    // check existance
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).send("invalid credentials");
-    }
-    // check if psw is corect
-    const validpsw = await bcrypt.compare(password, user.password);
-    if (!validpsw) {
-      return res.status(400).send("invalid credentials");
-    }
-
-    // create token
-    const token = jwt.sign(
-      {
-        id: user._id,
-        name: user.name,
-        type: user.type,
-        shop: user.shop,
-        shopId: user.shopId,
-        tokenVersion,
-      },
-      process.env.JWTsecret,
-      { expiresIn: "2h" },
-    );
-
+    const token = await userService.login(req.body);
     res.header("token", token).send(token);
   } catch (err) {
-    res.status(400).send(err);
+    res.status(400).send(err.message);
   }
 });
 
 router.get("/", isAuth, async (req, res) => {
   try {
-    const users = await User.find({ shopId: req.user.shopId })
-      .select({ password: 0 })
-      .sort({ _id: -1 });
-
+    const users = await userService.getUsers(req.user.shopId);
     res.status(200).send(users);
   } catch (err) {
-    res.status(400).send(err);
+    res.status(400).send(err.message);
   }
 });
 
-router.delete("/:id", isAuth, isAdmin, (req, res) => {
-  User.findByIdAndRemove(req.params.id)
-    .then((deletedUser) => res.status(200).send(deletedUser))
-    .catch((err) => res.status(400).send(err));
+router.delete("/:id", isAuth, isAdmin, async (req, res) => {
+  try {
+    const deletedUser = await userService.deleteUser(req.params.id);
+    res.status(200).send(deletedUser);
+  } catch (err) {
+    res.status(400).send(err.message);
+  }
 });
 
-router.put("/:id", isAuth, (req, res) => {
-  User.findByIdAndUpdate(req.params.id, req.body, { new: true })
-    .then((doc) => res.json(doc))
-    .catch((err) => res.send(err));
+router.put("/:id", isAuth, isAdmin, async (req, res) => {
+  try {
+    const updatedUser = await userService.updateUser(req.params.id, req.body);
+    res.status(200).send(updatedUser);
+  } catch (err) {
+    res.status(400).send(err.message);
+  }
 });
 
 module.exports = router;

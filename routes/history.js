@@ -1,30 +1,30 @@
 const router = require("express").Router();
-const History = require("../models/History");
 const isAuth = require("../permssions/isAuth");
 const isAdmin = require("../permssions/isAdmin");
+const historyService = require("../services/historyService");
 
 router.get("/:start/:end", isAuth, isAdmin, async (req, res) => {
   try {
-    const start = req.params.start;
-    const end = req.params.end;
+    const { start, end } = req.params;
 
-    if (!start || !end) {
-      return res.status(400).send("invalid time interval");
-    }
-
-    const history = await History.find({
-      shop: req.user.shop,
-      date: {
-        $gte: new Date(start),
-        $lte: new Date(end),
-      },
-    }).sort({
-      date: -1,
-    });
+    const history = await historyService.getHistoryByDateRange(
+      req.user.shop,
+      start,
+      end,
+    );
     res.status(200).send(history);
   } catch (error) {
-    console.log(error);
-    res.status(400).send(error);
+    console.error(error);
+    res.status(400).send(error.message);
+  }
+});
+
+router.post("/", isAuth, async (req, res) => {
+  try {
+    const newHistory = await historyService.createHistory(req.body);
+    res.status(201).send(newHistory);
+  } catch (err) {
+    res.status(400).send(err.message);
   }
 });
 
