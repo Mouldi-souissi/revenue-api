@@ -3,9 +3,16 @@ const isAuth = require("../middlewares/isAuth");
 const isAdmin = require("../middlewares/isAdmin");
 const historyService = require("../services/historyService");
 
-router.get("/:start/:end", isAuth, isAdmin, async (req, res) => {
+const InternalServerError = require("../errors/InternalServerError");
+const BadRequestError = require("../errors/BadRequestError");
+
+router.get("/:start/:end", isAuth, isAdmin, async (req, res, next) => {
   try {
     const { start, end } = req.params;
+
+    if (!start || !end) {
+      return next(new BadRequestError("invalid date interval"));
+    }
 
     const history = await historyService.getHistoryByDateRange(
       req.user.shop,
@@ -14,17 +21,16 @@ router.get("/:start/:end", isAuth, isAdmin, async (req, res) => {
     );
     res.status(200).send(history);
   } catch (error) {
-    console.error(error);
-    res.status(400).send(error.message);
+    next(new InternalServerError("An unexpected error occurred"));
   }
 });
 
-router.post("/", isAuth, async (req, res) => {
+router.post("/", isAuth, async (req, res, next) => {
   try {
     const newHistory = await historyService.createHistory(req.body);
     res.status(201).send(newHistory);
   } catch (err) {
-    res.status(400).send(err.message);
+    next(new InternalServerError("An unexpected error occurred"));
   }
 });
 

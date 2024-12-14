@@ -3,48 +3,76 @@ const isAuth = require("../middlewares/isAuth");
 const isAdmin = require("../middlewares/isAdmin");
 const userService = require("../services/userService");
 
-router.post("/register", isAuth, isAdmin, async (req, res) => {
+const InternalServerError = require("../errors/InternalServerError");
+const BadRequestError = require("../errors/BadRequestError");
+
+router.post("/register", isAuth, isAdmin, async (req, res, next) => {
   try {
-    const user = await userService.register(req.body, req.user);
+    const { name, email, password, type } = req.body;
+
+    if (!name || !email || !password || !type) {
+      return next(new BadRequestError("Invalid payload"));
+    }
+    const user = await userService.register(
+      { name, email, password, type },
+      req.user,
+    );
     res.status(201).send(user);
   } catch (err) {
-    res.status(400).send(err.message);
+    next(new InternalServerError("An unexpected error occurred"));
   }
 });
 
-router.post("/login", async (req, res) => {
+router.post("/login", async (req, res, next) => {
   try {
     const token = await userService.login(req.body);
     res.header("token", token).send(token);
   } catch (err) {
-    res.status(400).send(err.message);
+    next(new InternalServerError("An unexpected error occurred"));
   }
 });
 
-router.get("/", isAuth, async (req, res) => {
+router.get("/", isAuth, async (req, res, next) => {
   try {
     const users = await userService.getUsers(req.user.shopId);
     res.status(200).send(users);
   } catch (err) {
-    res.status(400).send(err.message);
+    next(new InternalServerError("An unexpected error occurred"));
   }
 });
 
-router.delete("/:id", isAuth, isAdmin, async (req, res) => {
+router.delete("/:id", isAuth, isAdmin, async (req, res, next) => {
   try {
-    const deletedUser = await userService.deleteUser(req.params.id);
+    const id = req.params.id;
+
+    if (!id) {
+      return next(new BadRequestError("missing id"));
+    }
+
+    const deletedUser = await userService.deleteUser(id);
     res.status(200).send(deletedUser);
   } catch (err) {
-    res.status(400).send(err.message);
+    next(new InternalServerError("An unexpected error occurred"));
   }
 });
 
-router.put("/:id", isAuth, isAdmin, async (req, res) => {
+router.put("/:id", isAuth, isAdmin, async (req, res, next) => {
   try {
-    const updatedUser = await userService.updateUser(req.params.id, req.body);
+    const id = req.params.id;
+
+    if (!id) {
+      return next(new BadRequestError("missing id"));
+    }
+
+    const { name, type } = req.body;
+
+    if (!name || !type) {
+      return next(new BadRequestError("Invalid payload"));
+    }
+    const updatedUser = await userService.updateUser(id, { name, type });
     res.status(200).send(updatedUser);
   } catch (err) {
-    res.status(400).send(err.message);
+    next(new InternalServerError("An unexpected error occurred"));
   }
 });
 

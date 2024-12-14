@@ -23,4 +23,15 @@ const ACCOUNT_TYPES = {
   secondary: "secondary",
 };
 
-module.exports = { MOVE_SUBTYPES, MOVE_TYPES, PERIOD_VALUES, ACCOUNT_TYPES };
+const USER_ROLES = {
+  ADMIN: "admin",
+  USER: "utilisateur",
+};
+
+module.exports = {
+  MOVE_SUBTYPES,
+  MOVE_TYPES,
+  PERIOD_VALUES,
+  ACCOUNT_TYPES,
+  USER_ROLES,
+};

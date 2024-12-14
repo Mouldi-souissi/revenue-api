@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const connectToMongoDB = require("./db/connectToMongoDB");
+const errorHandler = require("./middlewares/errorHandler");
 
 // import routes
 const userController = require("./controllers/userController");
@@ -26,15 +27,10 @@ apiRoutes.use("/moves", moveController);
 apiRoutes.use("/shops", shopController);
 apiRoutes.use("/history", historyController);
 apiRoutes.use("/backup", backupController);
-
 app.use("/api", apiRoutes);
 
-app.use((err, req, res, next) => {
-  console.error("Global error handler:", err.message);
-  return res
-    .status(500)
-    .json({ message: "Something went wrong, please try again later" });
-});
+// errors
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, (err) => {

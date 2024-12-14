@@ -1,13 +1,10 @@
 const jwt = require("jsonwebtoken");
+const NotAuthorizedError = require("../errors/NotAuthorizedError");
+const { USER_ROLES } = require("../constants");
 
 module.exports = function (req, res, next) {
-  try {
-    if (!req.user || req.user.type !== "admin") {
-      return res.status(403).send("Admin permission required!");
-    }
-    next(); // User is an admin, proceed to the next middleware or route handler
-  } catch (err) {
-    console.error(err); // Log the error for debugging
-    return res.status(500).send("Internal server error");
+  if (!req.user || req.user.type !== USER_ROLES.ADMIN) {
+    throw new NotAuthorizedError("Not Authorized");
   }
+  next();
 };

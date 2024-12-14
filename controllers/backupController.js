@@ -8,7 +8,9 @@ const History = require("../models/History");
 const isAuth = require("../middlewares/isAuth");
 const isAdmin = require("../middlewares/isAdmin");
 
-router.get("/", isAuth, isAdmin, async (req, res) => {
+const InternalServerError = require("../errors/InternalServerError");
+
+router.get("/", isAuth, isAdmin, async (req, res, next) => {
   try {
     const users = await User.find();
     const shops = await Shop.find();
@@ -20,8 +22,7 @@ router.get("/", isAuth, isAdmin, async (req, res) => {
       .status(200)
       .send({ users, moves, shops, accounts, history, date: new Date() });
   } catch (err) {
-    console.log(err);
-    res.status(400).send(err);
+    next(new InternalServerError("An unexpected error occurred"));
   }
 });
 

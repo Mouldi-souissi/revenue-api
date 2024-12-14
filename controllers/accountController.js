@@ -2,13 +2,15 @@ const router = require("express").Router();
 const isAuth = require("../middlewares/isAuth");
 const isAdmin = require("../middlewares/isAdmin");
 const accountService = require("../services/accountService");
+const InternalServerError = require("../errors/InternalServerError");
+const BadRequestError = require("../errors/BadRequestError");
 
-router.post("/", isAuth, async (req, res) => {
+router.post("/", isAuth, isAdmin, async (req, res, next) => {
   try {
     const { name, deposit, rate } = req.body;
 
     if (!name || !deposit || !rate) {
-      res.status(400).send("Invalid payload");
+      return next(new BadRequestError("invalid payload"));
     }
 
     const account = await accountService.createAccount(
@@ -17,25 +19,25 @@ router.post("/", isAuth, async (req, res) => {
     );
     res.status(201).send(account);
   } catch (err) {
-    res.status(400).send(err.message);
+    next(new InternalServerError("An unexpected error occurred"));
   }
 });
 
-router.get("/", isAuth, async (req, res) => {
+router.get("/", isAuth, async (req, res, next) => {
   try {
     const accounts = await accountService.getAccounts(req.user.shopId);
     res.status(200).send(accounts);
   } catch (err) {
-    res.status(400).send(err.message);
+    next(new InternalServerError("An unexpected error occurred"));
   }
 });
 
-router.put("/:id", isAuth, async (req, res) => {
+router.put("/:id", isAuth, async (req, res, next) => {
   try {
     const id = req.params.id;
 
     if (!id) {
-      res.status(400).send("Invalid Id");
+      return next(new BadRequestError("Invalid Id"));
     }
 
     const updatedAccount = await accountService.updateAccount(
@@ -45,16 +47,16 @@ router.put("/:id", isAuth, async (req, res) => {
 
     res.status(200).send(updatedAccount);
   } catch (err) {
-    res.status(400).send(err.message);
+    next(new InternalServerError("An unexpected error occurred"));
   }
 });
 
-router.delete("/:id", isAuth, isAdmin, async (req, res) => {
+router.delete("/:id", isAuth, isAdmin, async (req, res, next) => {
   try {
     const deletedAccount = await accountService.deleteAccount(req.params.id);
     res.status(200).send(deletedAccount);
   } catch (err) {
-    res.status(400).send(err.message);
+    next(new InternalServerError("An unexpected error occurred"));
   }
 });
 

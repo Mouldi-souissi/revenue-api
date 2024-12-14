@@ -11,12 +11,20 @@ const {
   getMonthRange,
 } = require("../helpers/dateAndTime");
 const History = require("../models/History");
-const { MOVE_SUBTYPES, MOVE_TYPES } = require("../constants");
+const { MOVE_SUBTYPES, MOVE_TYPES, PERIOD_VALUES } = require("../constants");
 const moveService = require("../services/moveService");
 
-router.get("/:period/:subType", isAuth, async (req, res) => {
+const InternalServerError = require("../errors/InternalServerError");
+const BadRequestError = require("../errors/BadRequestError");
+
+router.get("/:period/:subType", isAuth, async (req, res, next) => {
   try {
     const { period, subType } = req.params;
+
+    if (!PERIOD_VALUES[period] || !MOVE_SUBTYPES[subType]) {
+      return next(new BadRequestError("invalid params"));
+    }
+
     const moves = await moveService.getMovesByPeriod(
       period,
       subType,
@@ -24,13 +32,18 @@ router.get("/:period/:subType", isAuth, async (req, res) => {
     );
     res.status(200).send(moves);
   } catch (err) {
-    res.status(400).send(err.message);
+    next(new InternalServerError("An unexpected error occurred"));
   }
 });
 
-router.get("/revenue/:start/:end/:user", isAuth, async (req, res) => {
+router.get("/revenue/:start/:end/:user", isAuth, async (req, res, next) => {
   try {
     const { start, end, user } = req.params;
+
+    if (!start || !end || !user) {
+      return next(new BadRequestError("invalid params"));
+    }
+
     const revenueData = await moveService.calculateRevenue(
       start,
       end,
@@ -40,41 +53,77 @@ router.get("/revenue/:start/:end/:user", isAuth, async (req, res) => {
 
     res.status(200).send(revenueData);
   } catch (err) {
-    res.status(400).send(err.message);
+    next(new InternalServerError("An unexpected error occurred"));
   }
 });
 
-router.post("/", isAuth, async (req, res) => {
+router.post("/", isAuth, async (req, res, next) => {
   try {
-    const move = await moveService.createMove(req.body, req.user);
+    const { type, subType, amount, account, accountId, description } = req.body;
+
+    if (
+      !MOVE_TYPES[type] ||
+      !MOVE_SUBTYPES[subType] ||
+      !amount ||
+      !account ||
+      !accountId
+    ) {
+      return next(new BadRequestError("invalid payload"));
+    }
+
+    const move = await moveService.createMove(
+      { type, subType, amount, account, accountId, description },
+      req.user,
+    );
     res.status(201).send(move);
   } catch (err) {
-    console.log(err);
-    res.status(400).send(err.message);
+    next(new InternalServerError("An unexpected error occurred"));
   }
 });
 
-router.delete("/:id", isAuth, async (req, res) => {
+router.delete("/:id", isAuth, async (req, res, next) => {
   try {
-    const move = await moveService.deleteMove(req.params.id, req.user);
+    const id = req.params.id;
+
+    if (!id) {
+      return next(new BadRequestError("missing id"));
+    }
+    const move = await moveService.deleteMove(id, req.user);
     res.status(200).send(move);
   } catch (err) {
-    console.log(err);
-    res.status(400).send(err.message);
+    next(new InternalServerError("An unexpected error occurred"));
   }
 });
 
 // not used
-router.put("/:id", isAuth, isAdmin, (req, res) => {
-  Move.findByIdAndUpdate(req.params.id, req.body, { new: true })
-    .then((doc) => res.status(200).send(doc))
-    .catch((err) => res.status(400).send(err));
+router.put("/:id", isAuth, isAdmin, async (req, res, next) => {
+  try {
+    const id = req.params.id;
+
+    if (!id) {
+      return next(new BadRequestError("missing id"));
+    }
+    const move = await Move.findByIdAndUpdate(id, req.body, {
+      new: true,
+    });
+    res.status(200).send(move);
+  } catch (err) {
+    next(new InternalServerError("An unexpected error occurred"));
+  }
 });
 
-router.delete("/manual/:id", isAuth, isAdmin, (req, res) => {
-  Move.findByIdAndRemove(req.params.id)
-    .then(() => res.status(200).send("move deleted"))
-    .catch((err) => res.status(400).send(err));
+router.delete("/manual/:id", isAuth, isAdmin, async (req, res, next) => {
+  try {
+    const id = req.params.id;
+
+    if (!id) {
+      return next(new BadRequestError("missing id"));
+    }
+    await Move.findByIdAndRemove(id);
+    res.status(200).send("move deleted");
+  } catch (err) {
+    next(new InternalServerError("An unexpected error occurred"));
+  }
 });
 
 module.exports = router;
