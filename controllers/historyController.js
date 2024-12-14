@@ -1,6 +1,6 @@
 const router = require("express").Router();
-const isAuth = require("../permssions/isAuth");
-const isAdmin = require("../permssions/isAdmin");
+const isAuth = require("../middlewares/isAuth");
+const isAdmin = require("../middlewares/isAdmin");
 const historyService = require("../services/historyService");
 
 router.get("/:start/:end", isAuth, isAdmin, async (req, res) => {

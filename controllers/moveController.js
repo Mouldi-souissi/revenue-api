@@ -1,8 +1,8 @@
 const router = require("express").Router();
 const Move = require("../models/Move");
 const Account = require("../models/Account");
-const isAuth = require("../permssions/isAuth");
-const isAdmin = require("../permssions/isAdmin");
+const isAuth = require("../middlewares/isAuth");
+const isAdmin = require("../middlewares/isAdmin");
 const mongoose = require("mongoose");
 const {
   getTodayRange,

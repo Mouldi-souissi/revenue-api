@@ -4,10 +4,6 @@ class AccountService {
   async createAccount(accountData, currentUser) {
     const { name, deposit, rate } = accountData;
 
-    if (!name || !deposit || !rate) {
-      throw new Error("Invalid payload");
-    }
-
     const newAccount = {
       name,
       deposit,

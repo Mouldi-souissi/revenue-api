@@ -11,4 +11,16 @@ const MOVE_TYPES = {
   out: "sortie",
 };
 
-module.exports = { MOVE_SUBTYPES, MOVE_TYPES };
+const PERIOD_VALUES = {
+  daily: "daily",
+  yesterday: "yesterday",
+  weekly: "weekly",
+  monthly: "monthly",
+};
+
+const ACCOUNT_TYPES = {
+  primary: "primary",
+  secondary: "secondary",
+};
+
+module.exports = { MOVE_SUBTYPES, MOVE_TYPES, PERIOD_VALUES, ACCOUNT_TYPES };

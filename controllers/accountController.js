@@ -1,11 +1,20 @@
 const router = require("express").Router();
-const isAuth = require("../permssions/isAuth");
-const isAdmin = require("../permssions/isAdmin");
+const isAuth = require("../middlewares/isAuth");
+const isAdmin = require("../middlewares/isAdmin");
 const accountService = require("../services/accountService");
 
 router.post("/", isAuth, async (req, res) => {
   try {
-    const account = await accountService.createAccount(req.body, req.user);
+    const { name, deposit, rate } = req.body;
+
+    if (!name || !deposit || !rate) {
+      res.status(400).send("Invalid payload");
+    }
+
+    const account = await accountService.createAccount(
+      { name, deposit, rate },
+      req.user,
+    );
     res.status(201).send(account);
   } catch (err) {
     res.status(400).send(err.message);
@@ -23,10 +32,17 @@ router.get("/", isAuth, async (req, res) => {
 
 router.put("/:id", isAuth, async (req, res) => {
   try {
+    const id = req.params.id;
+
+    if (!id) {
+      res.status(400).send("Invalid Id");
+    }
+
     const updatedAccount = await accountService.updateAccount(
       req.params.id,
       req.body,
     );
+
     res.status(200).send(updatedAccount);
   } catch (err) {
     res.status(400).send(err.message);

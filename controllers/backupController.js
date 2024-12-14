@@ -5,8 +5,8 @@ const Shop = require("../models/Shop");
 const Account = require("../models/Account");
 const History = require("../models/History");
 
-const isAuth = require("../permssions/isAuth");
-const isAdmin = require("../permssions/isAdmin");
+const isAuth = require("../middlewares/isAuth");
+const isAdmin = require("../middlewares/isAdmin");
 
 router.get("/", isAuth, isAdmin, async (req, res) => {
   try {

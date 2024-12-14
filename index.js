@@ -4,12 +4,12 @@ const cors = require("cors");
 const connectToMongoDB = require("./db/connectToMongoDB");
 
 // import routes
-const user = require("./routes/user");
-const account = require("./routes/account");
-const move = require("./routes/move");
-const shop = require("./routes/shop");
-const history = require("./routes/history");
-const backup = require("./routes/backup");
+const userController = require("./controllers/userController");
+const accountController = require("./controllers/accountController");
+const moveController = require("./controllers/moveController");
+const shopController = require("./controllers/shopController");
+const historyController = require("./controllers/historyController");
+const backupController = require("./controllers/backupController");
 
 // connect to DB
 connectToMongoDB();
@@ -19,12 +19,15 @@ app.use(express.json());
 app.use(cors());
 
 // routes
-app.use("/api/users", user);
-app.use("/api/accounts", account);
-app.use("/api/moves", move);
-app.use("/api/shops", shop);
-app.use("/api/history", history);
-app.use("/api/backup", backup);
+const apiRoutes = express.Router();
+apiRoutes.use("/users", userController);
+apiRoutes.use("/accounts", accountController);
+apiRoutes.use("/moves", moveController);
+apiRoutes.use("/shops", shopController);
+apiRoutes.use("/history", historyController);
+apiRoutes.use("/backup", backupController);
+
+app.use("/api", apiRoutes);
 
 app.use((err, req, res, next) => {
   console.error("Global error handler:", err.message);
