@@ -2,13 +2,13 @@ const mongoose = require("mongoose");
 
 const accountSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  deposit: { type: String, default: "0", required: true },
+  deposit: { type: Number, default: 0, required: true },
   lastUpdated: { type: Date, default: () => new Date() },
   lastMove: {
     type: { type: String, default: "" },
-    amount: { type: String, default: "0" },
+    amount: { type: Number, default: 0 },
   },
-  rate: { type: String, default: "1" },
+  rate: { type: Number, default: 1 },
   shop: { type: String, default: "aouina" },
   shopId: String,
   type: { type: String, default: "secondary" },

@@ -108,7 +108,7 @@ class MoveService {
       const move = new Move({
         type,
         subType,
-        amount,
+        amount: Number(amount),
         account,
         description,
         accountId,
@@ -125,7 +125,7 @@ class MoveService {
         await accountService.updateAccount(
           moveAccount._id,
           {
-            lastMove: { type: MOVE_TYPES.in, amount },
+            lastMove: { type: MOVE_TYPES.in, amount: Number(amount) },
             deposit: Number(moveAccount.deposit) + Number(amount),
           },
           session,
@@ -134,7 +134,7 @@ class MoveService {
         await accountService.updateAccount(
           primaryAccount._id,
           {
-            lastMove: { type: MOVE_TYPES.out, amount },
+            lastMove: { type: MOVE_TYPES.out, amount: Number(amount) },
             deposit: Number(primaryAccount.deposit) - Number(amount),
           },
           session,
@@ -145,7 +145,7 @@ class MoveService {
         await accountService.updateAccount(
           primaryAccount._id,
           {
-            lastMove: { type: MOVE_TYPES.out, amount },
+            lastMove: { type: MOVE_TYPES.out, amount: Number(amount) },
             deposit: Number(primaryAccount.deposit) - Number(amount),
           },
           session,
@@ -156,7 +156,7 @@ class MoveService {
         await accountService.updateAccount(
           primaryAccount._id,
           {
-            lastMove: { type: MOVE_TYPES.in, amount },
+            lastMove: { type: MOVE_TYPES.in, amount: Number(amount) },
             deposit: Number(primaryAccount.deposit) + Number(amount),
           },
           session,
@@ -178,7 +178,7 @@ class MoveService {
         await accountService.updateAccount(
           moveAccount._id,
           {
-            lastMove: { type: MOVE_TYPES.in, amount },
+            lastMove: { type: MOVE_TYPES.in, amount: Number(amount) },
             deposit: Number(moveAccount.deposit) + Number(amount),
           },
           session,
@@ -189,7 +189,7 @@ class MoveService {
         await accountService.updateAccount(
           moveAccount._id,
           {
-            lastMove: { type: MOVE_TYPES.out, amount },
+            lastMove: { type: MOVE_TYPES.out, amount: Number(amount) },
             deposit: Number(moveAccount.deposit) - Number(amount),
           },
           session,
@@ -209,7 +209,7 @@ class MoveService {
         shop: user.shop,
         shopId: user.shopId,
         userId: user.id,
-        amount,
+        amount: Number(amount),
         isUndo: false,
       });
 
@@ -261,7 +261,7 @@ class MoveService {
         await accountService.updateAccount(
           moveAccount._id,
           {
-            lastMove: { type: MOVE_TYPES.out, amount },
+            lastMove: { type: MOVE_TYPES.out, amount: Number(amount) },
             deposit: Number(moveAccount.deposit) - Number(amount),
           },
           session,
@@ -270,7 +270,7 @@ class MoveService {
         await accountService.updateAccount(
           primaryAccount._id,
           {
-            lastMove: { type: MOVE_TYPES.in, amount },
+            lastMove: { type: MOVE_TYPES.in, amount: Number(amount) },
             deposit: Number(primaryAccount.deposit) + Number(amount),
           },
           session,
@@ -281,7 +281,7 @@ class MoveService {
         await accountService.updateAccount(
           primaryAccount._id,
           {
-            lastMove: { type: MOVE_TYPES.in, amount },
+            lastMove: { type: MOVE_TYPES.in, amount: Number(amount) },
             deposit: Number(primaryAccount.deposit) + Number(amount),
           },
           session,
@@ -294,7 +294,7 @@ class MoveService {
         await accountService.updateAccount(
           primaryAccount._id,
           {
-            lastMove: { type: MOVE_TYPES.out, amount },
+            lastMove: { type: MOVE_TYPES.out, amount: Number(amount) },
             deposit: Number(primaryAccount.deposit) - Number(amount),
           },
           session,
@@ -321,7 +321,7 @@ class MoveService {
         await accountService.updateAccount(
           moveAccount._id,
           {
-            lastMove: { type: MOVE_TYPES.out, amount },
+            lastMove: { type: MOVE_TYPES.out, amount: Number(amount) },
             deposit: Number(moveAccount.deposit) - Number(amount),
           },
           session,
@@ -332,7 +332,7 @@ class MoveService {
         await accountService.updateAccount(
           moveAccount._id,
           {
-            lastMove: { type: MOVE_TYPES.in, amount },
+            lastMove: { type: MOVE_TYPES.in, amount: Number(amount) },
             deposit: Number(moveAccount.deposit) + Number(amount),
           },
           session,
@@ -352,7 +352,7 @@ class MoveService {
         shop: user.shop,
         shopId: user.shopId,
         userId: user.id,
-        amount,
+        amount: Number(amount),
         isUndo: true,
       });
 

@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const account = new mongoose.Schema({
   name: String,
-  deposit: String,
+  deposit: Number,
 });
 
 const history = new mongoose.Schema({
@@ -16,7 +16,7 @@ const history = new mongoose.Schema({
   moveSubType: String,
   user: String,
   isUndo: { type: Boolean, default: false },
-  amount: String,
+  amount: Number,
   shopId: String,
   userId: String,
 });
