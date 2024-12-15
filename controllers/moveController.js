@@ -21,7 +21,7 @@ router.get("/:period/:subType", isAuth, async (req, res, next) => {
   try {
     const { period, subType } = req.params;
 
-    if (!PERIOD_VALUES[period] || !MOVE_SUBTYPES[subType]) {
+    if (!period || !subType) {
       return next(new BadRequestError("invalid params"));
     }
 
@@ -61,13 +61,7 @@ router.post("/", isAuth, async (req, res, next) => {
   try {
     const { type, subType, amount, account, accountId, description } = req.body;
 
-    if (
-      !MOVE_TYPES[type] ||
-      !MOVE_SUBTYPES[subType] ||
-      !amount ||
-      !account ||
-      !accountId
-    ) {
+    if (!type || !subType || !amount || !account || !accountId) {
       return next(new BadRequestError("invalid payload"));
     }
 
