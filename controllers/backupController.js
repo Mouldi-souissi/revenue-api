@@ -22,7 +22,7 @@ router.get("/", isAuth, isAdmin, async (req, res, next) => {
       .status(200)
       .send({ users, moves, shops, accounts, history, date: new Date() });
   } catch (err) {
-    next(new InternalServerError("An unexpected error occurred"));
+    next(new InternalServerError(err.message));
   }
 });
 

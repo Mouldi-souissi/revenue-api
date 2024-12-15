@@ -21,7 +21,7 @@ router.get("/:start/:end", isAuth, isAdmin, async (req, res, next) => {
     );
     res.status(200).send(history);
   } catch (error) {
-    next(new InternalServerError("An unexpected error occurred"));
+    next(new InternalServerError(err.message));
   }
 });
 
@@ -30,7 +30,7 @@ router.post("/", isAuth, async (req, res, next) => {
     const newHistory = await historyService.createHistory(req.body);
     res.status(201).send(newHistory);
   } catch (err) {
-    next(new InternalServerError("An unexpected error occurred"));
+    next(new InternalServerError(err.message));
   }
 });
 

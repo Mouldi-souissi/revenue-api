@@ -32,7 +32,7 @@ router.get("/:period/:subType", isAuth, async (req, res, next) => {
     );
     res.status(200).send(moves);
   } catch (err) {
-    next(new InternalServerError("An unexpected error occurred"));
+    next(new InternalServerError(err.message));
   }
 });
 
@@ -53,7 +53,7 @@ router.get("/revenue/:start/:end/:user", isAuth, async (req, res, next) => {
 
     res.status(200).send(revenueData);
   } catch (err) {
-    next(new InternalServerError("An unexpected error occurred"));
+    next(new InternalServerError(err.message));
   }
 });
 
@@ -71,7 +71,7 @@ router.post("/", isAuth, async (req, res, next) => {
     );
     res.status(201).send(move);
   } catch (err) {
-    next(new InternalServerError("An unexpected error occurred"));
+    next(new InternalServerError(err.message));
   }
 });
 
@@ -85,7 +85,7 @@ router.delete("/:id", isAuth, async (req, res, next) => {
     const move = await moveService.deleteMove(id, req.user);
     res.status(200).send(move);
   } catch (err) {
-    next(new InternalServerError("An unexpected error occurred"));
+    next(new InternalServerError(err.message));
   }
 });
 
@@ -102,7 +102,7 @@ router.put("/:id", isAuth, isAdmin, async (req, res, next) => {
     });
     res.status(200).send(move);
   } catch (err) {
-    next(new InternalServerError("An unexpected error occurred"));
+    next(new InternalServerError(err.message));
   }
 });
 
@@ -116,7 +116,7 @@ router.delete("/manual/:id", isAuth, isAdmin, async (req, res, next) => {
     await Move.findByIdAndRemove(id);
     res.status(200).send("move deleted");
   } catch (err) {
-    next(new InternalServerError("An unexpected error occurred"));
+    next(new InternalServerError(err.message));
   }
 });
 

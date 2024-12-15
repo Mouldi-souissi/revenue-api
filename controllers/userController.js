@@ -19,7 +19,7 @@ router.post("/register", isAuth, isAdmin, async (req, res, next) => {
     );
     res.status(201).send(user);
   } catch (err) {
-    next(new InternalServerError("An unexpected error occurred"));
+    next(new InternalServerError(err.message));
   }
 });
 
@@ -28,7 +28,7 @@ router.post("/login", async (req, res, next) => {
     const token = await userService.login(req.body);
     res.header("token", token).send(token);
   } catch (err) {
-    next(new InternalServerError("An unexpected error occurred"));
+    next(new InternalServerError(err.message));
   }
 });
 
@@ -37,7 +37,7 @@ router.get("/", isAuth, async (req, res, next) => {
     const users = await userService.getUsers(req.user.shopId);
     res.status(200).send(users);
   } catch (err) {
-    next(new InternalServerError("An unexpected error occurred"));
+    next(new InternalServerError(err.message));
   }
 });
 
@@ -52,7 +52,7 @@ router.delete("/:id", isAuth, isAdmin, async (req, res, next) => {
     const deletedUser = await userService.deleteUser(id);
     res.status(200).send(deletedUser);
   } catch (err) {
-    next(new InternalServerError("An unexpected error occurred"));
+    next(new InternalServerError(err.message));
   }
 });
 
@@ -72,7 +72,7 @@ router.put("/:id", isAuth, isAdmin, async (req, res, next) => {
     const updatedUser = await userService.updateUser(id, { name, type });
     res.status(200).send(updatedUser);
   } catch (err) {
-    next(new InternalServerError("An unexpected error occurred"));
+    next(new InternalServerError(err.message));
   }
 });
 
