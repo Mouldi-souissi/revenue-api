@@ -4,6 +4,7 @@ const MOVE_SUBTYPES = {
   spending: "dépense",
   deposit: "versement",
   withdraw: "retrait",
+  all: "all",
 };
 
 const MOVE_TYPES = {

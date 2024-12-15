@@ -11,7 +11,12 @@ module.exports = function (req, res, next) {
     throw new AuthenticationError("Authentication token required");
   }
 
-  const verified = jwt.verify(token, process.env.JWTsecret);
+  let verified;
+  try {
+    verified = jwt.verify(token, process.env.JWTsecret);
+  } catch (err) {
+    throw new AuthenticationError("Authentication token expired");
+  }
 
   if (
     !verified ||
