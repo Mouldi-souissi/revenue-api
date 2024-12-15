@@ -4,6 +4,7 @@ const MOVE_SUBTYPES = {
   spending: "dépense",
   deposit: "versement",
   withdraw: "retrait",
+  all: "all",
 };
 
 const MOVE_TYPES = {
@@ -11,4 +12,27 @@ const MOVE_TYPES = {
   out: "sortie",
 };
 
-module.exports = { MOVE_SUBTYPES, MOVE_TYPES };
+const PERIOD_VALUES = {
+  daily: "daily",
+  yesterday: "yesterday",
+  weekly: "weekly",
+  monthly: "monthly",
+};
+
+const ACCOUNT_TYPES = {
+  primary: "primary",
+  secondary: "secondary",
+};
+
+const USER_ROLES = {
+  ADMIN: "admin",
+  USER: "utilisateur",
+};
+
+module.exports = {
+  MOVE_SUBTYPES,
+  MOVE_TYPES,
+  PERIOD_VALUES,
+  ACCOUNT_TYPES,
+  USER_ROLES,
+};
