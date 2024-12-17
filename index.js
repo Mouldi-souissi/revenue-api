@@ -11,7 +11,6 @@ const moveController = require("./controllers/moveController");
 const shopController = require("./controllers/shopController");
 const historyController = require("./controllers/historyController");
 const backupController = require("./controllers/backupController");
-const subscriberController = require("./controllers/subscriberController");
 
 // connect to DB
 connectToMongoDB();
@@ -28,7 +27,6 @@ apiRoutes.use("/moves", moveController);
 apiRoutes.use("/shops", shopController);
 apiRoutes.use("/history", historyController);
 apiRoutes.use("/backup", backupController);
-apiRoutes.use("/subscribers", subscriberController);
 app.use("/api", apiRoutes);
 
 // errors
