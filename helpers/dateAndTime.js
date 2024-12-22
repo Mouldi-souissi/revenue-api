@@ -1,55 +1,49 @@
 const getTodayRange = () => {
-  const now = new Date();
-  const startOfDay = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
-  );
+  const now = new Date().toLocaleString("en-TN", { timeZone: "Africa/Tunis" });
+  const startOfDay = new Date(now);
+  startOfDay.setHours(0, 0, 0, 0);
+
   const endOfDay = new Date(startOfDay);
-  endOfDay.setUTCDate(startOfDay.getUTCDate() + 1);
+  endOfDay.setDate(startOfDay.getDate() + 1);
+
   return { start: startOfDay, end: endOfDay };
 };
 
 const getYesterdayRange = () => {
-  const now = new Date();
-  const startOfDay = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 1),
-  );
+  const now = new Date().toLocaleString("en-TN", { timeZone: "Africa/Tunis" });
+  const startOfDay = new Date(now);
+  startOfDay.setDate(startOfDay.getDate() - 1);
+  startOfDay.setHours(0, 0, 0, 0);
+
   const endOfDay = new Date(startOfDay);
-  endOfDay.setUTCDate(startOfDay.getUTCDate() + 1);
+  endOfDay.setDate(startOfDay.getDate() + 1);
+
   return { start: startOfDay, end: endOfDay };
 };
 
 const getWeekRange = () => {
-  const now = new Date();
-  // Calculate the start of the week (Monday)
-  const dayOfWeek = now.getUTCDay(); // 0 (Sunday) to 6 (Saturday)
-  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Offset to get to Monday
-  const startOfWeek = new Date(
-    Date.UTC(
-      now.getUTCFullYear(),
-      now.getUTCMonth(),
-      now.getUTCDate() + mondayOffset,
-    ),
-  );
+  const now = new Date().toLocaleString("en-TN", { timeZone: "Africa/Tunis" });
+  const dayOfWeek = new Date(now).getUTCDay();
+  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(now.getDate() + mondayOffset);
+  startOfWeek.setHours(0, 0, 0, 0);
 
-  // Calculate the end of the week (next Monday)
   const endOfWeek = new Date(startOfWeek);
-  endOfWeek.setUTCDate(startOfWeek.getUTCDate() + 7);
+  endOfWeek.setDate(startOfWeek.getDate() + 7);
 
   return { start: startOfWeek, end: endOfWeek };
 };
 
-// Get the range for the current month
 const getMonthRange = () => {
-  const now = new Date();
-  // Start of the month
-  const startOfMonth = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
-  );
+  const now = new Date().toLocaleString("en-TN", { timeZone: "Africa/Tunis" });
+  const startOfMonth = new Date(now);
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
 
-  // Start of the next month
-  const startOfNextMonth = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1),
-  );
+  const startOfNextMonth = new Date(startOfMonth);
+  startOfNextMonth.setMonth(startOfMonth.getMonth() + 1);
+  startOfNextMonth.setDate(1);
 
   return { start: startOfMonth, end: startOfNextMonth };
 };
