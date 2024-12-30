@@ -13,9 +13,9 @@ const {
   getWeekRange,
   getMonthRange,
 } = require("../helpers/dateAndTime");
-const mongoose = require("mongoose");
 const Move = require("../models/Move");
 const History = require("../models/History");
+const database = require("../db/database");
 
 class MoveService {
   async getMovesByPeriod(period, subType, shopId) {
@@ -83,14 +83,7 @@ class MoveService {
   }
 
   async createMove(data, user) {
-    const session = await mongoose.startSession().catch((err) => {
-      console.error("Error starting session:", err);
-      throw error("Internal server error");
-    });
-
-    if (!session) return;
-
-    try {
+    return await database.transaction(async (session) => {
       const { type, amount, account, description, subType, accountId } = data;
 
       const accounts = await accountService.getAccounts(user.shopId);
@@ -102,8 +95,6 @@ class MoveService {
       if (!primaryAccount || !moveAccount) {
         throw error("error finding primaryAccount or moveAccount");
       }
-
-      await session.startTransaction();
 
       const move = new Move({
         type,
@@ -217,24 +208,11 @@ class MoveService {
       await session.commitTransaction();
 
       return createdMove;
-    } catch (error) {
-      await session.abortTransaction();
-      console.error("Transaction failed:", error);
-      throw error("Internal server error");
-    } finally {
-      session.endSession();
-    }
+    });
   }
 
   async deleteMove(moveId, user) {
-    const session = await mongoose.startSession().catch((err) => {
-      console.error("Error starting session:", err);
-      throw error("Internal server error");
-    });
-
-    if (!session) return;
-
-    try {
+    return await database.transaction(async (session) => {
       const move = await moveRepository.findById(moveId);
 
       if (!move) {
@@ -252,8 +230,6 @@ class MoveService {
       if (!primaryAccount || !moveAccount) {
         throw error("error finding primaryAccount or moveAccount");
       }
-
-      await session.startTransaction();
 
       await moveRepository.deleteById(moveId, session);
 
@@ -357,16 +333,9 @@ class MoveService {
       });
 
       await historyService.createHistory(history, session);
-      await session.commitTransaction();
 
       return move;
-    } catch (error) {
-      await session.abortTransaction();
-      console.error("Transaction failed:", error);
-      throw error("Internal server error");
-    } finally {
-      session.endSession();
-    }
+    });
   }
 }
 

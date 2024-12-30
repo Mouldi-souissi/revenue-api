@@ -1,8 +1,8 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
-const connectToMongoDB = require("./db/connectToMongoDB");
 const errorHandler = require("./middlewares/errorHandler");
+const database = require("./db/database");
 
 // import routes
 const userController = require("./controllers/userController");
@@ -13,7 +13,7 @@ const historyController = require("./controllers/historyController");
 const backupController = require("./controllers/backupController");
 
 // connect to DB
-connectToMongoDB();
+database.connect();
 
 // middlewares
 app.use(express.json());

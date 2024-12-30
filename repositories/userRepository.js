@@ -1,29 +1,33 @@
 const User = require("../models/User");
+const database = require("../db/database");
 
 class UserRepository {
   async findByEmail(email) {
-    return User.findOne({ email });
+    return database.readOne(User, { email });
   }
 
   async findById(id) {
-    return User.findById(id);
+    return database.readOne(User, { _id: id });
   }
 
   async findByShopId(shopId) {
-    return User.find({ shopId }).select({ password: 0 }).sort({ _id: -1 });
+    return database.read(
+      User,
+      { shopId },
+      { select: { password: 0 }, sort: { _id: -1 } },
+    );
   }
 
   async create(userData) {
-    const user = new User(userData);
-    return user.save();
+    return database.create(User, userData);
   }
 
   async updateById(id, updateData) {
-    return User.findByIdAndUpdate(id, updateData, { new: true });
+    return database.update(User, { _id: id }, updateData);
   }
 
   async deleteById(id) {
-    return User.findByIdAndRemove(id);
+    return database.delete(User, { _id: id });
   }
 }
 

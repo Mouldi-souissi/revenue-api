@@ -1,37 +1,41 @@
 const Account = require("../models/Account");
+const database = require("../db/database");
 
 class AccountRepository {
   async create(accountData) {
-    const account = new Account(accountData);
-    return account.save();
+    return database.create(Account, accountData);
   }
 
   async findByShopId(shopId, session = null) {
+    const options = { sort: { _id: -1 } };
     if (session) {
-      return Account.find({ shopId }).session(session).sort({ _id: -1 });
-    } else {
-      return Account.find({ shopId }).sort({ _id: -1 });
+      options.session = session;
     }
+    return database.read(Account, { shopId }, options);
   }
 
-  async findById(accountId) {
-    return Account.findById(accountId);
+  async findById(accountId, session = null) {
+    const options = {};
+    if (session) {
+      options.session = session;
+    }
+    return database.readOne(Account, { _id: accountId }, options);
   }
 
   async updateById(accountId, updateData, session = null) {
-    let options = { new: true };
+    const options = { new: true };
     if (session) {
       options.session = session;
     }
-    return Account.findByIdAndUpdate(accountId, updateData, options);
+    return database.update(Account, { _id: accountId }, updateData, options);
   }
 
-  async deleteById(accountId) {
-    let options = {};
+  async deleteById(accountId, session = null) {
+    const options = {};
     if (session) {
       options.session = session;
     }
-    return Account.findByIdAndDelete(accountId, options);
+    return database.delete(Account, { _id: accountId }, options);
   }
 }
 

@@ -1,20 +1,37 @@
 const Move = require("../models/Move");
+const database = require("../db/database");
 
 class MoveRepository {
-  async find(query) {
-    return Move.find(query).sort({ date: -1 });
+  async find(query, session = null) {
+    const options = { sort: { date: -1 } };
+    if (session) {
+      options.session = session;
+    }
+    return database.read(Move, query, options);
   }
 
-  async findById(id) {
-    return Move.findById(id);
+  async findById(id, session = null) {
+    const options = {};
+    if (session) {
+      options.session = session;
+    }
+    return database.readOne(Move, { _id: id }, options);
   }
 
-  async save(move, session = null) {
-    return move.save({ session });
+  async save(moveData, session = null) {
+    const options = {};
+    if (session) {
+      options.session = session;
+    }
+    return database.create(Move, moveData, options);
   }
 
   async deleteById(id, session = null) {
-    return Move.findByIdAndRemove(id, { session });
+    const options = {};
+    if (session) {
+      options.session = session;
+    }
+    return database.delete(Move, { _id: id }, options);
   }
 }
 

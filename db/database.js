@@ -40,20 +40,18 @@ class Database {
     session.startTransaction();
 
     try {
-      const result = await callback(session); // Execute callback with the session
-      await session.commitTransaction(); // Commit the transaction
-      console.log("Transaction committed successfully");
+      const result = await callback(session);
+      await session.commitTransaction();
       return result;
     } catch (err) {
-      await session.abortTransaction(); // Rollback changes
+      await session.abortTransaction();
       console.error("Transaction aborted:", err.message);
       throw err;
     } finally {
-      session.endSession(); // End the session
+      session.endSession();
     }
   }
 
-  // Other CRUD methods...
   async create(model, data) {
     try {
       const result = await model.create(data);
@@ -67,6 +65,16 @@ class Database {
   async read(model, query = {}, options = {}) {
     try {
       const result = await model.find(query, null, options).exec();
+      return result;
+    } catch (err) {
+      console.error("Failed to read documents:", err.message);
+      throw err;
+    }
+  }
+
+  async readOne(model, query = {}, options = {}) {
+    try {
+      const result = await model.findOne(query, null, options).exec();
       return result;
     } catch (err) {
       console.error("Failed to read documents:", err.message);

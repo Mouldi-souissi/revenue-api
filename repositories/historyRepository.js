@@ -1,25 +1,25 @@
 const History = require("../models/History");
+const database = require("../db/database");
 
 class HistoryRepository {
   async findByDateRange(shop, start, end) {
-    return History.find({
+    const query = {
       shop,
       date: {
         $gte: new Date(start),
         $lte: new Date(end),
       },
-    }).sort({ date: -1 });
+    };
+    const options = { sort: { date: -1 } };
+    return database.read(History, query, options);
   }
 
   async create(historyData, session = null) {
-    let options = {};
-
+    const options = {};
     if (session) {
-      options = { session };
+      options.session = session;
     }
-    const history = new History(historyData);
-
-    return history.save(options);
+    return database.create(History, historyData, options);
   }
 }
 

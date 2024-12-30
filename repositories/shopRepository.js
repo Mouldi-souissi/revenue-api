@@ -1,25 +1,25 @@
 const Shop = require("../models/Shop");
+const database = require("../db/database");
 
 class ShopRepository {
   async create(shopData) {
-    const shop = new Shop(shopData);
-    return shop.save();
+    return database.create(Shop, shopData);
   }
 
   async findAll() {
-    return Shop.find().sort({ _id: -1 });
+    return database.read(Shop, {}, { sort: { _id: -1 } });
   }
 
   async findById(shopId) {
-    return Shop.findById(shopId);
+    return database.readOne(Shop, { _id: shopId });
   }
 
   async updateById(shopId, updateData) {
-    return Shop.findByIdAndUpdate(shopId, updateData, { new: true });
+    return database.update(Shop, { _id: shopId }, updateData);
   }
 
   async deleteById(shopId) {
-    return Shop.findByIdAndDelete(shopId);
+    return database.delete(Shop, { _id: shopId });
   }
 }
 
