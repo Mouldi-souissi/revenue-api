@@ -133,10 +133,10 @@ router.delete("/manual/:id", isAuth, isAdmin, async (req, res, next) => {
 
 router.post("/resetShop", isAuth, isAuth, async (req, res, next) => {
   try {
-    const password = req.body.password;
-    if (!password || process.env.RESET_PASSWORD !== password) {
-      return next(new BadRequestError("Invalid Password"));
-    }
+    // const password = req.body.password;
+    // if (!password || process.env.RESET_PASSWORD !== password) {
+    //   return next(new BadRequestError("Invalid Password"));
+    // }
 
     await moveService.reset(req.user.shopId);
     res.status(200).send("shop has been reseted");
