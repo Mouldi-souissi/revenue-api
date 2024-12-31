@@ -21,6 +21,14 @@ class HistoryRepository {
     }
     return database.create(History, historyData, options);
   }
+
+  async deleteMany(query, session = null) {
+    const options = {};
+    if (session) {
+      options.session = session;
+    }
+    return database.deleteMany(History, query, options);
+  }
 }
 
 module.exports = new HistoryRepository();

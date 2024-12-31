@@ -337,6 +337,25 @@ class MoveService {
       return move;
     });
   }
+
+  async reset(shopId) {
+    return await database.transaction(async (session) => {
+      await moveRepository.deleteMany({ shopId }, session);
+      await historyService.deleteHistory({ shopId }, session);
+      await accountService.deleteAccounts(
+        { shopId, type: "secondary" },
+        session,
+      );
+      await accountService.update(
+        { type: "primary", shopId },
+        {
+          deposit: 0,
+          lastMove: { amount: 0, type: "" },
+          lastUpdated: new Date(),
+        },
+      );
+    });
+  }
 }
 
 module.exports = new MoveService();

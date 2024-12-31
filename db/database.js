@@ -103,6 +103,16 @@ class Database {
       throw err;
     }
   }
+
+  async deleteMany(model, query) {
+    try {
+      const result = await model.deleteMany(query).exec();
+      return result;
+    } catch (err) {
+      console.error("Failed to delete documents:", err.message);
+      throw err;
+    }
+  }
 }
 
 module.exports = new Database();

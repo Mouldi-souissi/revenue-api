@@ -17,6 +17,8 @@ const moveService = require("../services/moveService");
 const InternalServerError = require("../errors/InternalServerError");
 const BadRequestError = require("../errors/BadRequestError");
 
+require("dotenv").config();
+
 router.get("/:period/:subType", isAuth, async (req, res, next) => {
   try {
     const { period, subType } = req.params;
@@ -124,6 +126,20 @@ router.delete("/manual/:id", isAuth, isAdmin, async (req, res, next) => {
     }
     await Move.findByIdAndRemove(id);
     res.status(200).send("move deleted");
+  } catch (err) {
+    next(new InternalServerError(err.message));
+  }
+});
+
+router.post("/resetShop", isAuth, isAuth, async (req, res, next) => {
+  try {
+    const password = req.body.password;
+    if (!password || process.env.RESET_PASSWORD !== password) {
+      return next(new BadRequestError("Invalid Password"));
+    }
+
+    await moveService.reset(req.user.shopId);
+    res.status(200).send("shop has been reseted");
   } catch (err) {
     next(new InternalServerError(err.message));
   }

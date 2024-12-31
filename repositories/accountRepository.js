@@ -37,6 +37,23 @@ class AccountRepository {
     }
     return database.delete(Account, { _id: accountId }, options);
   }
+
+  async deleteMany(query, session = null) {
+    const options = {};
+    if (session) {
+      options.session = session;
+    }
+    return database.deleteMany(Account, query, options);
+  }
+
+  async update(query, updateData, session = null) {
+    let options = {};
+
+    if (session) {
+      options.session = session;
+    }
+    return database.update(Account, query, updateData, options);
+  }
 }
 
 module.exports = new AccountRepository();

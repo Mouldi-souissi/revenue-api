@@ -33,6 +33,13 @@ class MoveRepository {
     }
     return database.delete(Move, { _id: id }, options);
   }
+  async deleteMany(query, session = null) {
+    const options = {};
+    if (session) {
+      options.session = session;
+    }
+    return database.deleteMany(Move, query, options);
+  }
 }
 
 module.exports = new MoveRepository();

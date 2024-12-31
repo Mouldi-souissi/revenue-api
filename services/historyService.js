@@ -8,6 +8,10 @@ class HistoryService {
   async createHistory(historyData, session = null) {
     return historyRepository.create(historyData, session);
   }
+
+  async deleteHistory(query, session = null) {
+    return historyRepository.deleteMany(query, session);
+  }
 }
 
 module.exports = new HistoryService();

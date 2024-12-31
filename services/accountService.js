@@ -26,6 +26,14 @@ class AccountService {
   async deleteAccount(accountId, session = null) {
     return accountRepository.deleteById(accountId, session);
   }
+
+  async deleteAccounts(query, session = null) {
+    return accountRepository.deleteMany(query, session);
+  }
+
+  async update(query, update, session = null) {
+    return accountRepository.update(query, update, session);
+  }
 }
 
 module.exports = new AccountService();
