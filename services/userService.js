@@ -31,8 +31,11 @@ class UserService {
     const { email, password } = userData;
 
     const user = await userRepository.findByEmail(email);
+    if (!user) {
+      throw new BadRequestError("Invalid credentials");
+    }
     const isValidPassword = await comparePasswords(password, user.password);
-    if (!user || !isValidPassword) {
+    if (!isValidPassword) {
       throw new BadRequestError("Invalid credentials");
     }
 

@@ -54,6 +54,14 @@ describe("post /register", () => {
       .set("Authorization", `Bearer ${adminToken}`)
       .expect(400);
   });
+
+  it("should fail invalid payload", async () => {
+    const response = await request(app)
+      .post("/api/users/register")
+      .send({})
+      .set("Authorization", `Bearer ${adminToken}`)
+      .expect(400);
+  });
 });
 
 describe("post /login", () => {
@@ -62,13 +70,25 @@ describe("post /login", () => {
       .post("/api/users/login")
       .send({ email: userPayload.email, password: userPayload.password });
 
-    console.log(response.body);
-
     expect(response.status).toBe(200);
 
     const token = response.header.token;
     expect(token).toBeDefined();
     expect(typeof token).toBe("string");
+  });
+
+  it("should fail Invalid email", async () => {
+    const response = await request(app)
+      .post("/api/users/login")
+      .send({ email: "invalidemail@mail.com", password: userPayload.password })
+      .expect(400);
+  });
+
+  it("should fail Invalid password", async () => {
+    const response = await request(app)
+      .post("/api/users/login")
+      .send({ email: userPayload.email, password: "invalid password" })
+      .expect(400);
   });
 });
 
