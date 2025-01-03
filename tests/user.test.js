@@ -1,11 +1,19 @@
 const request = require("supertest");
 const mongoose = require("mongoose");
 const { MongoMemoryServer } = require("mongodb-memory-server");
-const { app, server } = require("../index");
+const app = require("../app");
 const User = require("../models/User");
 const { connectDB, disconnectDB, dropDB, getMockToken } = require("./setup");
 
 const adminToken = getMockToken("admin");
+const PORT = 3000;
+let server = app.listen(PORT, (err) => {
+  if (err) {
+    console.log(err);
+  } else {
+    console.log("server is up and running on port " + PORT);
+  }
+});
 
 beforeAll(async () => {
   await connectDB();
