@@ -1,7 +1,6 @@
-const jwt = require("jsonwebtoken");
 const tokenVersion = require("../tokenVersion");
 const AuthenticationError = require("../errors/AuthenticationError");
-require("dotenv").config();
+const { decodeToken } = require("../helpers/token");
 
 module.exports = function (req, res, next) {
   const authHeader = req.headers["authorization"];
@@ -13,7 +12,7 @@ module.exports = function (req, res, next) {
 
   let verified;
   try {
-    verified = jwt.verify(token, process.env.JWTsecret);
+    verified = decodeToken(token);
   } catch (err) {
     throw new AuthenticationError("Authentication token expired");
   }

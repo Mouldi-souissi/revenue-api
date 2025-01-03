@@ -19,15 +19,26 @@ router.post("/register", isAuth, isAdmin, async (req, res, next) => {
     );
     res.status(201).send(user);
   } catch (err) {
+    if (err instanceof BadRequestError) {
+      next(new BadRequestError(err.message));
+    }
     next(new InternalServerError(err.message));
   }
 });
 
 router.post("/login", async (req, res, next) => {
   try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return next(new BadRequestError("Invalid payload"));
+    }
     const token = await userService.login(req.body);
     res.header("token", token).send(token);
   } catch (err) {
+    if (err instanceof BadRequestError) {
+      next(new BadRequestError(err.message));
+    }
     next(new InternalServerError(err.message));
   }
 });
