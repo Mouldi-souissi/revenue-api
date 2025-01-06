@@ -90,10 +90,10 @@ class MoveService {
       const primaryAccount = accounts.find(
         (acc) => acc.type === ACCOUNT_TYPES.primary,
       );
-      const moveAccount = accounts.find((acc) => acc.name === account);
+      const moveAccount = accounts.find((acc) => acc._id == accountId);
 
       if (!primaryAccount || !moveAccount) {
-        throw error("error finding primaryAccount or moveAccount");
+        throw new Error("error finding primaryAccount or moveAccount");
       }
 
       const move = new Move({
@@ -216,19 +216,19 @@ class MoveService {
       const move = await moveRepository.findById(moveId);
 
       if (!move) {
-        throw error("Invalid move id");
+        throw new Error("Invalid move id");
       }
 
-      const { subType, amount, account, shop } = move;
+      const { subType, amount, account, shop, accountId } = move;
 
       const accounts = await accountService.getAccounts(user.shopId);
       const primaryAccount = accounts.find(
         (acc) => acc.type === ACCOUNT_TYPES.primary,
       );
-      const moveAccount = accounts.find((acc) => acc.name === account);
+      const moveAccount = accounts.find((acc) => acc._id == accountId);
 
       if (!primaryAccount || !moveAccount) {
-        throw error("error finding primaryAccount or moveAccount");
+        throw new Error("error finding primaryAccount or moveAccount");
       }
 
       await moveRepository.deleteById(moveId, session);
