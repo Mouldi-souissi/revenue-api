@@ -1,6 +1,5 @@
 const jwt = require("jsonwebtoken");
 const tokenVersion = require("../tokenVersion");
-
 require("dotenv").config();
 
 const claims = {

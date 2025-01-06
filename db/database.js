@@ -1,15 +1,14 @@
 const mongoose = require("mongoose");
-require("dotenv").config();
 
 class Database {
   constructor() {
     this.connection = null;
   }
 
-  async connect() {
+  async connect(URI) {
     try {
       mongoose.set("strictQuery", true);
-      this.connection = await mongoose.connect(process.env.DB, {
+      this.connection = await mongoose.connect(URI, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
       });
@@ -31,6 +30,19 @@ class Database {
       }
     } catch (err) {
       console.error("Failed to disconnect from the database:", err.message);
+      throw err;
+    }
+  }
+
+  async drop() {
+    try {
+      if (this.connection) {
+        await mongoose.connection.dropDatabase();
+      } else {
+        console.warn("No active database connection to drop");
+      }
+    } catch (err) {
+      console.error("Failed to drop db:", err.message);
       throw err;
     }
   }
@@ -110,6 +122,16 @@ class Database {
       return result;
     } catch (err) {
       console.error("Failed to delete documents:", err.message);
+      throw err;
+    }
+  }
+
+  async createMany(model, data) {
+    try {
+      const result = await model.insertMany(data);
+      return result;
+    } catch (err) {
+      console.error("Failed to insert many document:", err.message);
       throw err;
     }
   }

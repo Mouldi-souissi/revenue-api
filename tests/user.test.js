@@ -1,33 +1,9 @@
 const request = require("supertest");
-const mongoose = require("mongoose");
-const { MongoMemoryServer } = require("mongodb-memory-server");
-const app = require("../app");
 const User = require("../models/User");
-const { connectDB, disconnectDB, dropDB, getMockToken } = require("./setup");
+const app = require("../app");
+const { getMockToken } = require("./helpers");
 
 const adminToken = getMockToken("admin");
-const PORT = 3000;
-let server = app.listen(PORT, (err) => {
-  if (err) {
-    console.log(err);
-  } else {
-    console.log("server is up and running on port " + PORT);
-  }
-});
-
-beforeAll(async () => {
-  await connectDB();
-});
-
-afterAll(async () => {
-  await dropDB();
-  await disconnectDB();
-  await server.close();
-});
-
-// afterEach(async () => {
-//   await dropDB();
-// });
 
 let userPayload = {
   name: "john",
@@ -37,6 +13,19 @@ let userPayload = {
 };
 
 let createdUserId = "";
+
+// beforeAll(async () => {
+//   await connect();
+
+// });
+
+// afterAll(async () => {
+//   await disconnect();
+// });
+
+// afterEach(async () => {
+//   await dropDB();
+// });
 
 describe("post /register", () => {
   it("should return registered user", async () => {
