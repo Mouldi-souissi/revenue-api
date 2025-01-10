@@ -20,7 +20,6 @@ class AccountService {
   }
 
   async updateAccount(accountId, updateData, session = null) {
-    updateData.lastUpdated = new Date();
     return accountRepository.updateById(accountId, updateData, session);
   }
 

@@ -35,14 +35,25 @@ router.get("/", isAuth, async (req, res, next) => {
 router.put("/:id", isAuth, async (req, res, next) => {
   try {
     const id = req.params.id;
+    const { name, rate } = req.body;
 
     if (!id) {
       return next(new BadRequestError("Invalid Id"));
     }
 
+    if (!name || !rate) {
+      return next(new BadRequestError("invalid payload"));
+    }
+
+    const update = {
+      name,
+      rate: Number(rate),
+      lastUpdated: new Date(),
+    };
+
     const updatedAccount = await accountService.updateAccount(
       req.params.id,
-      req.body,
+      update,
     );
 
     res.status(200).send(updatedAccount);
