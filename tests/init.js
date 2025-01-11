@@ -34,7 +34,7 @@ const initDB = async () => {
       {
         id: admin._id,
         name: admin.name,
-        type: admin.role,
+        type: admin.type,
         shop: admin.shop,
         shopId: admin.shopId,
         tokenVersion,
@@ -54,7 +54,7 @@ const initDB = async () => {
     const userToken = await signToken({
       id: user._id,
       name: user.name,
-      type: user.role,
+      type: user.type,
       shop: user.shop,
       shopId: user.shopId,
       tokenVersion,
@@ -81,6 +81,8 @@ const initDB = async () => {
     const primaryAccount = await Account.create(primary);
     const secondaryAccount = await Account.create(secondary);
 
+    console.log("db init done");
+
     return {
       shop,
       user,
@@ -96,10 +98,7 @@ const initDB = async () => {
 };
 
 const connect = async () => {
-  // if (mongoose.connection.readyState === 0) {
   await database.connect(process.env.DB_TEST);
-  await initDB();
-  // }
 };
 
 const disconnect = async () => {
@@ -108,10 +107,12 @@ const disconnect = async () => {
 
 const dropDB = async () => {
   await database.drop();
+  console.log("drop db done");
 };
 
 module.exports = {
   connect,
   disconnect,
   dropDB,
+  initDB,
 };
