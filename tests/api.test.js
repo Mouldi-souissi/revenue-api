@@ -144,6 +144,9 @@ describe("users", () => {
 describe("moves", () => {
   const sale = { amount: 240 };
   const spending = { amount: 100 };
+  const win = { amount: 50 };
+  const deposit = { amount: 150 };
+  const withdraw = { amount: 150 };
 
   describe("post /moves", () => {
     it("should add sale and update accounts and save history", async () => {
@@ -217,5 +220,128 @@ describe("moves", () => {
 
       expect(history[0].amount).toBe(spending.amount);
     });
+
+    it("should add win and update accounts and save history", async () => {
+      const response = await request(app)
+        .post("/api/moves")
+        .send({
+          type: MOVE_TYPES.out,
+          subType: MOVE_SUBTYPES.win,
+          amount: win.amount,
+          account: dbData?.secondaryAccount.name,
+          accountId: dbData?.secondaryAccount._id,
+          description: "",
+        })
+        .set("Authorization", `Bearer ${dbData.adminToken}`)
+        .expect(201);
+
+      expect(win.amount).toBe(response.body.amount);
+
+      const addedMove = await Move.findById(response.body._id);
+
+      expect(win.amount).toBe(addedMove.amount);
+
+      const accountSecondary = await Account.findById(
+        dbData.secondaryAccount._id,
+      );
+
+      expect(accountSecondary.deposit).toBe(850);
+
+      const accountPrimary = await Account.findById(dbData.primaryAccount._id);
+
+      expect(accountPrimary.deposit).toBe(
+        dbData.primaryAccount.deposit +
+          sale.amount -
+          spending.amount -
+          win.amount,
+      );
+
+      const history = await History.find({
+        type: MOVE_TYPES.out,
+        subType: MOVE_SUBTYPES.win,
+        amount: win.amount,
+      });
+
+      expect(history[0].amount).toBe(win.amount);
+    });
+
+    it("should add deposit and update account and save history", async () => {
+      const response = await request(app)
+        .post("/api/moves")
+        .send({
+          type: MOVE_TYPES.in,
+          subType: MOVE_SUBTYPES.deposit,
+          amount: deposit.amount,
+          account: dbData?.primaryAccount.name,
+          accountId: dbData?.primaryAccount._id,
+          description: "",
+        })
+        .set("Authorization", `Bearer ${dbData.adminToken}`)
+        .expect(201);
+
+      expect(deposit.amount).toBe(response.body.amount);
+
+      const addedMove = await Move.findById(response.body._id);
+
+      expect(deposit.amount).toBe(addedMove.amount);
+
+      const accountPrimary = await Account.findById(dbData.primaryAccount._id);
+
+      expect(accountPrimary.deposit).toBe(
+        dbData.primaryAccount.deposit +
+          sale.amount -
+          spending.amount -
+          win.amount +
+          deposit.amount,
+      );
+
+      const history = await History.find({
+        type: MOVE_TYPES.in,
+        subType: MOVE_SUBTYPES.deposit,
+        amount: deposit.amount,
+      });
+
+      expect(history[0].amount).toBe(deposit.amount);
+    });
+
+    it("should add withdraw and update account and save history", async () => {
+      const response = await request(app)
+        .post("/api/moves")
+        .send({
+          type: MOVE_TYPES.out,
+          subType: MOVE_SUBTYPES.withdraw,
+          amount: withdraw.amount,
+          account: dbData?.primaryAccount.name,
+          accountId: dbData?.primaryAccount._id,
+          description: "",
+        })
+        .set("Authorization", `Bearer ${dbData.adminToken}`)
+        .expect(201);
+
+      expect(withdraw.amount).toBe(response.body.amount);
+
+      const addedMove = await Move.findById(response.body._id);
+
+      expect(withdraw.amount).toBe(addedMove.amount);
+
+      const accountPrimary = await Account.findById(dbData.primaryAccount._id);
+
+      expect(accountPrimary.deposit).toBe(
+        dbData.primaryAccount.deposit +
+          sale.amount -
+          spending.amount -
+          win.amount,
+      );
+
+      const history = await History.find({
+        type: MOVE_TYPES.out,
+        subType: MOVE_SUBTYPES.withdraw,
+        amount: withdraw.amount,
+      });
+
+      expect(history[0].amount).toBe(withdraw.amount);
+    });
   });
+
+  describe("delete /moves:id", () => {});
 });
