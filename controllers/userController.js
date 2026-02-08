@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const isAuth = require("../middlewares/isAuth");
 const isAdmin = require("../middlewares/isAdmin");
+const validate = require("../middlewares/validate");
 const userService = require("../services/userService");
 
 const InternalServerError = require("../errors/InternalServerError");
@@ -36,7 +37,14 @@ const BadRequestError = require("../errors/BadRequestError");
  *       403:
  *         description: Forbidden - Admin required
  */
-router.post("/register", isAuth, isAdmin, async (req, res, next) => {
+router.post(
+  "/register",
+  isAuth,
+  isAdmin,
+  validate({
+    body: { required: ["name", "email", "password", "type"] },
+  }),
+  async (req, res, next) => {
   try {
     const { name, email, password, type } = req.body;
 
@@ -78,7 +86,10 @@ router.post("/register", isAuth, isAdmin, async (req, res, next) => {
  *       400:
  *         description: Invalid email or password
  */
-router.post("/login", async (req, res, next) => {
+router.post(
+  "/login",
+  validate({ body: { required: ["email", "password"] } }),
+  async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
@@ -185,24 +196,39 @@ router.delete("/:id", isAuth, isAdmin, async (req, res, next) => {
  *       403:
  *         description: Forbidden - Admin required
  */
-router.put("/:id", isAuth, isAdmin, async (req, res, next) => {
-  try {
-    const id = req.params.id;
+router.delete(
+  "/:id",
+  isAuth,
+  isAdmin,
+  validate({ params: { required: ["id"] } }),
+  async (req, res, next) => {
+    try {
+      const id = req.params.id;
 
-    if (!id) {
-      return next(new BadRequestError("missing id"));
+      const deletedUser = await userService.deleteUser(id);
+      res.status(200).send(deletedUser);
+    } catch (err) {
+      next(new InternalServerError(err.message));
     }
+  },
+);
 
-    const { name, type } = req.body;
+router.put(
+  "/:id",
+  isAuth,
+  isAdmin,
+  validate({ params: { required: ["id"] }, body: { required: ["name", "type"] } }),
+  async (req, res, next) => {
+    try {
+      const id = req.params.id;
+      const { name, type } = req.body;
 
-    if (!name || !type) {
-      return next(new BadRequestError("Invalid payload"));
+      const updatedUser = await userService.updateUser(id, { name, type });
+      res.status(200).send(updatedUser);
+    } catch (err) {
+      next(new InternalServerError(err.message));
     }
-    const updatedUser = await userService.updateUser(id, { name, type });
-    res.status(200).send(updatedUser);
-  } catch (err) {
-    next(new InternalServerError(err.message));
-  }
-});
+  },
+);
 
 module.exports = router;

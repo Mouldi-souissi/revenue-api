@@ -46,7 +46,14 @@ const BadRequestError = require("../errors/BadRequestError");
  *         description: History created
  */
 
-router.get("/:start/:end", isAuth, isAdmin, async (req, res, next) => {
+const validate = require("../middlewares/validate");
+
+router.get(
+  "/:start/:end",
+  isAuth,
+  isAdmin,
+  validate({ params: { required: ["start", "end"] } }),
+  async (req, res, next) => {
   try {
     const { start, end } = req.params;
 
@@ -65,13 +72,18 @@ router.get("/:start/:end", isAuth, isAdmin, async (req, res, next) => {
   }
 });
 
-router.post("/", isAuth, async (req, res, next) => {
-  try {
-    const newHistory = await historyService.createHistory(req.body);
-    res.status(201).send(newHistory);
-  } catch (err) {
-    next(new InternalServerError(err.message));
-  }
-});
+router.post(
+  "/",
+  isAuth,
+  validate({ body: { required: ["moveSubType", "amount", "user"] } }),
+  async (req, res, next) => {
+    try {
+      const newHistory = await historyService.createHistory(req.body);
+      res.status(201).send(newHistory);
+    } catch (err) {
+      next(new InternalServerError(err.message));
+    }
+  },
+);
 
 module.exports = router;

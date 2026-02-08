@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const isAuth = require("../middlewares/isAuth");
 const isAdmin = require("../middlewares/isAdmin");
+const validate = require("../middlewares/validate");
 const accountService = require("../services/accountService");
 const InternalServerError = require("../errors/InternalServerError");
 const BadRequestError = require("../errors/BadRequestError");
@@ -46,7 +47,12 @@ const BadRequestError = require("../errors/BadRequestError");
  *         description: Unauthorized
  */
 
-router.post("/", isAuth, isAdmin, async (req, res, next) => {
+router.post(
+  "/",
+  isAuth,
+  isAdmin,
+  validate({ body: { required: ["name", "deposit", "rate"] } }),
+  async (req, res, next) => {
   try {
     const { name, deposit, rate } = req.body;
 
@@ -73,43 +79,43 @@ router.get("/", isAuth, async (req, res, next) => {
   }
 });
 
-router.put("/:id", isAuth, async (req, res, next) => {
-  try {
-    const id = req.params.id;
-    const { name, rate } = req.body;
+router.put(
+  "/:id",
+  isAuth,
+  validate({ params: { required: ["id"] }, body: { required: ["name", "rate"] } }),
+  async (req, res, next) => {
+    try {
+      const id = req.params.id;
+      const { name, rate } = req.body;
 
-    if (!id) {
-      return next(new BadRequestError("Invalid Id"));
+      const update = {
+        name,
+        rate: Number(rate),
+        lastUpdated: new Date(),
+      };
+
+      const updatedAccount = await accountService.updateAccount(id, update);
+
+      res.status(200).send(updatedAccount);
+    } catch (err) {
+      next(new InternalServerError(err.message));
     }
+  },
+);
 
-    if (!name || !rate) {
-      return next(new BadRequestError("invalid payload"));
+router.delete(
+  "/:id",
+  isAuth,
+  isAdmin,
+  validate({ params: { required: ["id"] } }),
+  async (req, res, next) => {
+    try {
+      const deletedAccount = await accountService.deleteAccount(req.params.id);
+      res.status(200).send(deletedAccount);
+    } catch (err) {
+      next(new InternalServerError(err.message));
     }
-
-    const update = {
-      name,
-      rate: Number(rate),
-      lastUpdated: new Date(),
-    };
-
-    const updatedAccount = await accountService.updateAccount(
-      req.params.id,
-      update,
-    );
-
-    res.status(200).send(updatedAccount);
-  } catch (err) {
-    next(new InternalServerError(err.message));
-  }
-});
-
-router.delete("/:id", isAuth, isAdmin, async (req, res, next) => {
-  try {
-    const deletedAccount = await accountService.deleteAccount(req.params.id);
-    res.status(200).send(deletedAccount);
-  } catch (err) {
-    next(new InternalServerError(err.message));
-  }
-});
+  },
+);
 
 module.exports = router;

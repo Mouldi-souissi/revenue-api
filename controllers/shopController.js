@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const isAuth = require("../middlewares/isAuth");
 const isAdmin = require("../middlewares/isAdmin");
+const validate = require("../middlewares/validate");
 const shopService = require("../services/shopService");
 
 const InternalServerError = require("../errors/InternalServerError");
@@ -58,14 +59,20 @@ const InternalServerError = require("../errors/InternalServerError");
  *         description: Shop object
  */
 
-router.post("/", isAuth, isAdmin, async (req, res, next) => {
-  try {
-    const shop = await shopService.createShop(req.body);
-    res.status(201).send(shop);
-  } catch (err) {
-    next(new InternalServerError(err.message));
-  }
-});
+router.post(
+  "/",
+  isAuth,
+  isAdmin,
+  validate({ body: { required: ["name"] } }),
+  async (req, res, next) => {
+    try {
+      const shop = await shopService.createShop(req.body);
+      res.status(201).send(shop);
+    } catch (err) {
+      next(new InternalServerError(err.message));
+    }
+  },
+);
 
 router.get("/", isAuth, async (req, res, next) => {
   try {
@@ -85,22 +92,48 @@ router.get("/:id", isAuth, async (req, res, next) => {
   }
 });
 
-router.put("/:id", isAuth, isAdmin, async (req, res, next) => {
-  try {
-    const updatedShop = await shopService.updateShop(req.params.id, req.body);
-    res.status(200).send(updatedShop);
-  } catch (err) {
-    next(new InternalServerError(err.message));
-  }
-});
+router.get(
+  "/:id",
+  isAuth,
+  validate({ params: { required: ["id"] } }),
+  async (req, res, next) => {
+    try {
+      const shop = await shopService.getShopById(req.params.id);
+      res.status(200).send(shop);
+    } catch (err) {
+      next(new InternalServerError(err.message));
+    }
+  },
+);
 
-router.delete("/:id", isAuth, isAdmin, async (req, res, next) => {
-  try {
-    const deletedShop = await shopService.deleteShop(req.params.id);
-    res.status(200).send(deletedShop);
-  } catch (err) {
-    next(new InternalServerError(err.message));
-  }
-});
+router.put(
+  "/:id",
+  isAuth,
+  isAdmin,
+  validate({ params: { required: ["id"] }, body: { required: ["name"] } }),
+  async (req, res, next) => {
+    try {
+      const updatedShop = await shopService.updateShop(req.params.id, req.body);
+      res.status(200).send(updatedShop);
+    } catch (err) {
+      next(new InternalServerError(err.message));
+    }
+  },
+);
+
+router.delete(
+  "/:id",
+  isAuth,
+  isAdmin,
+  validate({ params: { required: ["id"] } }),
+  async (req, res, next) => {
+    try {
+      const deletedShop = await shopService.deleteShop(req.params.id);
+      res.status(200).send(deletedShop);
+    } catch (err) {
+      next(new InternalServerError(err.message));
+    }
+  },
+);
 
 module.exports = router;

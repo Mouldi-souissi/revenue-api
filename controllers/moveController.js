@@ -3,6 +3,7 @@ const Move = require("../models/Move");
 const Account = require("../models/Account");
 const isAuth = require("../middlewares/isAuth");
 const isAdmin = require("../middlewares/isAdmin");
+const validate = require("../middlewares/validate");
 const mongoose = require("mongoose");
 const {
   getTodayRange,
@@ -105,7 +106,11 @@ require("dotenv").config();
  *         description: Move deleted
  */
 
-router.get("/:period/:subType", isAuth, async (req, res, next) => {
+router.get(
+  "/:period/:subType",
+  isAuth,
+  validate({ params: { required: ["period", "subType"] } }),
+  async (req, res, next) => {
   try {
     const { period, subType } = req.params;
 
@@ -127,28 +132,35 @@ router.get("/:period/:subType", isAuth, async (req, res, next) => {
   }
 });
 
-router.get("/revenue/:start/:end/:user", isAuth, async (req, res, next) => {
-  try {
-    const { start, end, user } = req.params;
+router.get(
+  "/revenue/:start/:end/:user",
+  isAuth,
+  validate({ params: { required: ["start", "end", "user"] } }),
+  async (req, res, next) => {
+    try {
+      const { start, end, user } = req.params;
 
-    if (!start || !end || !user) {
-      return next(new BadRequestError("invalid params"));
+      const revenueData = await moveService.calculateRevenue(
+        start,
+        end,
+        user,
+        req.user.shopId,
+      );
+
+      res.status(200).send(revenueData);
+    } catch (err) {
+      next(new InternalServerError(err.message));
     }
+  },
+);
 
-    const revenueData = await moveService.calculateRevenue(
-      start,
-      end,
-      user,
-      req.user.shopId,
-    );
-
-    res.status(200).send(revenueData);
-  } catch (err) {
-    next(new InternalServerError(err.message));
-  }
-});
-
-router.post("/", isAuth, async (req, res, next) => {
+router.post(
+  "/",
+  isAuth,
+  validate({
+    body: { required: ["type", "subType", "amount", "account", "accountId"] },
+  }),
+  async (req, res, next) => {
   try {
     const { type, subType, amount, account, accountId, description } = req.body;
 
@@ -173,22 +185,28 @@ router.post("/", isAuth, async (req, res, next) => {
   }
 });
 
-router.delete("/:id", isAuth, async (req, res, next) => {
-  try {
-    const id = req.params.id;
-
-    if (!id) {
-      return next(new BadRequestError("missing id"));
+router.delete(
+  "/:id",
+  isAuth,
+  validate({ params: { required: ["id"] } }),
+  async (req, res, next) => {
+    try {
+      const id = req.params.id;
+      const move = await moveService.deleteMove(id, req.user);
+      res.status(200).send(move);
+    } catch (err) {
+      next(new InternalServerError(err.message));
     }
-    const move = await moveService.deleteMove(id, req.user);
-    res.status(200).send(move);
-  } catch (err) {
-    next(new InternalServerError(err.message));
-  }
-});
+  },
+);
 
 // not used
-router.put("/:id", isAuth, isAdmin, async (req, res, next) => {
+router.put(
+  "/:id",
+  isAuth,
+  isAdmin,
+  validate({ params: { required: ["id"] } }),
+  async (req, res, next) => {
   try {
     const id = req.params.id;
 
@@ -204,19 +222,21 @@ router.put("/:id", isAuth, isAdmin, async (req, res, next) => {
   }
 });
 
-router.delete("/manual/:id", isAuth, isAdmin, async (req, res, next) => {
-  try {
-    const id = req.params.id;
-
-    if (!id) {
-      return next(new BadRequestError("missing id"));
+router.delete(
+  "/manual/:id",
+  isAuth,
+  isAdmin,
+  validate({ params: { required: ["id"] } }),
+  async (req, res, next) => {
+    try {
+      const id = req.params.id;
+      await Move.findByIdAndRemove(id);
+      res.status(200).send("move deleted");
+    } catch (err) {
+      next(new InternalServerError(err.message));
     }
-    await Move.findByIdAndRemove(id);
-    res.status(200).send("move deleted");
-  } catch (err) {
-    next(new InternalServerError(err.message));
-  }
-});
+  },
+);
 
 router.post("/resetShop", isAuth, isAuth, async (req, res, next) => {
   try {
