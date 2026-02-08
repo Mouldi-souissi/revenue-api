@@ -5,6 +5,47 @@ const accountService = require("../services/accountService");
 const InternalServerError = require("../errors/InternalServerError");
 const BadRequestError = require("../errors/BadRequestError");
 
+/**
+ * @swagger
+ * /accounts:
+ *   post:
+ *     summary: Create a new account (admin only)
+ *     tags: [Accounts]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name: { type: string }
+ *               deposit: { type: number }
+ *               rate: { type: number }
+ *             required: [name, deposit, rate]
+ *     responses:
+ *       201:
+ *         description: Account created
+ *       400:
+ *         description: Invalid payload
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin required
+ *
+ *   get:
+ *     summary: Get all accounts for the shop
+ *     tags: [Accounts]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of accounts
+ *       401:
+ *         description: Unauthorized
+ */
+
 router.post("/", isAuth, isAdmin, async (req, res, next) => {
   try {
     const { name, deposit, rate } = req.body;

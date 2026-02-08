@@ -10,6 +10,23 @@ const isAdmin = require("../middlewares/isAdmin");
 
 const InternalServerError = require("../errors/InternalServerError");
 
+/**
+ * @swagger
+ * /backup:
+ *   get:
+ *     summary: Get full backup dump (admin only)
+ *     tags: [Backup]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Full data dump including users, moves, shops, accounts, history
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin required
+ */
+
 router.get("/", isAuth, isAdmin, async (req, res, next) => {
   try {
     const users = await User.find();

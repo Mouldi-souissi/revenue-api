@@ -6,6 +6,36 @@ const userService = require("../services/userService");
 const InternalServerError = require("../errors/InternalServerError");
 const BadRequestError = require("../errors/BadRequestError");
 
+/**
+ * @swagger
+ * /users/register:
+ *   post:
+ *     summary: Register a new user (admin only)
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name: { type: string }
+ *               email: { type: string }
+ *               password: { type: string }
+ *               type: { type: string, enum: [admin, utilisateur] }
+ *             required: [name, email, password, type]
+ *     responses:
+ *       201:
+ *         description: User registered successfully
+ *       400:
+ *         description: Invalid payload or email already exists
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin required
+ */
 router.post("/register", isAuth, isAdmin, async (req, res, next) => {
   try {
     const { name, email, password, type } = req.body;
@@ -26,6 +56,28 @@ router.post("/register", isAuth, isAdmin, async (req, res, next) => {
   }
 });
 
+/**
+ * @swagger
+ * /users/login:
+ *   post:
+ *     summary: Login user and get JWT token
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email: { type: string }
+ *               password: { type: string }
+ *             required: [email, password]
+ *     responses:
+ *       200:
+ *         description: Login successful, returns JWT token
+ *       400:
+ *         description: Invalid email or password
+ */
 router.post("/login", async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -43,6 +95,20 @@ router.post("/login", async (req, res, next) => {
   }
 });
 
+/**
+ * @swagger
+ * /users:
+ *   get:
+ *     summary: Get all users in shop
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of users
+ *       401:
+ *         description: Unauthorized
+ */
 router.get("/", isAuth, async (req, res, next) => {
   try {
     const users = await userService.getUsers(req.user.shopId);
@@ -52,6 +118,27 @@ router.get("/", isAuth, async (req, res, next) => {
   }
 });
 
+/**
+ * @swagger
+ * /users/{id}:
+ *   delete:
+ *     summary: Delete a user (admin only)
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: User deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin required
+ */
 router.delete("/:id", isAuth, isAdmin, async (req, res, next) => {
   try {
     const id = req.params.id;
@@ -67,6 +154,37 @@ router.delete("/:id", isAuth, isAdmin, async (req, res, next) => {
   }
 });
 
+/**
+ * @swagger
+ * /users/{id}:
+ *   put:
+ *     summary: Update a user (admin only)
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name: { type: string }
+ *               type: { type: string, enum: [admin, utilisateur] }
+ *             required: [name, type]
+ *     responses:
+ *       200:
+ *         description: User updated successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin required
+ */
 router.put("/:id", isAuth, isAdmin, async (req, res, next) => {
   try {
     const id = req.params.id;

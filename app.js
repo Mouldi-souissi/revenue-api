@@ -2,6 +2,8 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const errorHandler = require("./middlewares/errorHandler");
+const swaggerUi = require("swagger-ui-express");
+const swaggerSpecs = require("./swagger");
 
 // import routes
 const userController = require("./controllers/userController");
@@ -15,6 +17,9 @@ const backupController = require("./controllers/backupController");
 // middlewares
 app.use(express.json());
 app.use(cors());
+
+// swagger documentation
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
 // routes
 const apiRoutes = express.Router();

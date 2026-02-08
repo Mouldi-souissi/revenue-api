@@ -19,6 +19,92 @@ const BadRequestError = require("../errors/BadRequestError");
 
 require("dotenv").config();
 
+/**
+ * @swagger
+ * /moves/{period}/{subType}:
+ *   get:
+ *     summary: Get moves by period and subtype
+ *     tags: [Moves]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: period
+ *         required: true
+ *         schema: { type: string }
+ *       - in: path
+ *         name: subType
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: List of moves
+ *       400:
+ *         description: Invalid params
+ *
+ * /moves/revenue/{start}/{end}/{user}:
+ *   get:
+ *     summary: Calculate revenue for a date range and user
+ *     tags: [Moves]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: start
+ *         required: true
+ *         schema: { type: string }
+ *       - in: path
+ *         name: end
+ *         required: true
+ *         schema: { type: string }
+ *       - in: path
+ *         name: user
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Revenue data
+ *
+ * /moves:
+ *   post:
+ *     summary: Create a move (auth required)
+ *     tags: [Moves]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               type: { type: string }
+ *               subType: { type: string }
+ *               amount: { type: number }
+ *               account: { type: string }
+ *               accountId: { type: string }
+ *               description: { type: string }
+ *             required: [type, subType, amount, account, accountId]
+ *     responses:
+ *       201:
+ *         description: Move created
+ *
+ * /moves/{id}:
+ *   delete:
+ *     summary: Delete a move
+ *     tags: [Moves]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Move deleted
+ */
+
 router.get("/:period/:subType", isAuth, async (req, res, next) => {
   try {
     const { period, subType } = req.params;

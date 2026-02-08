@@ -6,6 +6,46 @@ const historyService = require("../services/historyService");
 const InternalServerError = require("../errors/InternalServerError");
 const BadRequestError = require("../errors/BadRequestError");
 
+/**
+ * @swagger
+ * /history/{start}/{end}:
+ *   get:
+ *     summary: Get history entries in a date range (admin only)
+ *     tags: [History]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: start
+ *         required: true
+ *         schema: { type: string }
+ *       - in: path
+ *         name: end
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: List of history entries
+ *       400:
+ *         description: Invalid date interval
+ *
+ * /history:
+ *   post:
+ *     summary: Create a history entry
+ *     tags: [History]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/History'
+ *     responses:
+ *       201:
+ *         description: History created
+ */
+
 router.get("/:start/:end", isAuth, isAdmin, async (req, res, next) => {
   try {
     const { start, end } = req.params;
