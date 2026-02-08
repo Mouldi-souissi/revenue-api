@@ -98,7 +98,13 @@ const initDB = async () => {
 };
 
 const connect = async () => {
-  await database.connect(process.env.DB_TEST);
+  const dbUri = process.env.DB_TEST || process.env.DB;
+  if (!dbUri) {
+    throw new Error(
+      'DB_TEST or DB environment variable must be set to run tests.'
+    );
+  }
+  await database.connect(dbUri);
 };
 
 const disconnect = async () => {
